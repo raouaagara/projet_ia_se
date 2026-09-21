@@ -62,6 +62,46 @@ public class NotificationService {
         });
     }
 
+    // ── Raccourcis utilisés par les services métier ──────────────────────
+
+    @Transactional
+    public void envoyerRappelRdv(Utilisateur patient, String nomMedecin, String dateStr, Long rdvId) {
+        envoyer(patient, "Rappel de rendez-vous",
+            "Rappel : vous avez rendez-vous avec " + nomMedecin + " le " + dateStr + ".",
+            TypeNotification.RAPPEL_RDV, rdvId, "RDV");
+    }
+
+    @Transactional
+    public void envoyerNouvellePrescription(Utilisateur patient, String nomMedecin, Long ordonnanceId) {
+        envoyer(patient, "Nouvelle ordonnance",
+            "Le Dr " + nomMedecin + " vous a prescrit une nouvelle ordonnance.",
+            TypeNotification.NOUVELLE_PRESCRIPTION, ordonnanceId, "ORDONNANCE");
+    }
+
+    @Transactional
+    public void envoyerResultatDisponible(Utilisateur patient, String typeExamen, Long examenId) {
+        envoyer(patient, "Résultat disponible",
+            "Le résultat de votre examen « " + typeExamen + " » est disponible.",
+            TypeNotification.RESULTAT_DISPONIBLE, examenId, "EXAMEN");
+    }
+
+    @Transactional
+    public void envoyerResultatMedecin(Utilisateur medecin, String nomPatient, String typeExamen, Long examenId) {
+        envoyer(medecin, "Résultat d'examen reçu",
+            "Le résultat de l'examen « " + typeExamen + " » de " + nomPatient + " est disponible.",
+            TypeNotification.RESULTAT_EXAMEN, examenId, "EXAMEN");
+    }
+
+    private void envoyer(Utilisateur u, String titre, String message,
+                         TypeNotification type, Long referenceId, String referenceType) {
+        if (u == null) return;
+        notificationRepository.save(Notification.builder()
+            .utilisateur(u).titre(titre).message(message)
+            .type(type).lue(false)
+            .referenceId(referenceId).referenceType(referenceType)
+            .build());
+    }
+
     private NotificationDto toDto(Notification n) {
         NotificationDto dto = new NotificationDto();
         dto.setId(n.getId());
