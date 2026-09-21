@@ -16,11 +16,8 @@ import { ChatbotComponent } from '../shared/chatbot.component';
       <header class="admin-nav">
         <div class="admin-nav-inner">
           <a class="admin-brand" routerLink="/back/dashboard">
-            <div class="admin-logo"><i class="fa fa-hospital"></i></div>
-            <div>
-              <span class="admin-brand-name">MediCare</span>
-              <span class="admin-brand-sub">Administration</span>
-            </div>
+            <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+            <span class="brand-caption admin-brand-sub">Administration</span>
           </a>
           <nav class="admin-tabs">
             <a routerLink="/back/dashboard"          routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-chart-pie"></i><span>Dashboard</span></a>
@@ -77,11 +74,9 @@ import { ChatbotComponent } from '../shared/chatbot.component';
       <aside class="med-sidebar" [class.collapsed]="collapsed">
         <!-- Brand -->
         <div class="med-brand">
-          <div class="med-logo"><i class="fa fa-stethoscope"></i></div>
-          <div class="med-brand-text" *ngIf="!collapsed">
-            <span class="med-brand-name">MediCare</span>
-            <span class="med-brand-sub">Espace Médecin</span>
-          </div>
+          <span class="brand-chip" *ngIf="!collapsed"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+          <span class="brand-chip med-logo-mark" *ngIf="collapsed"><img src="assets/logo-mark.png" alt="Medicare"></span>
+          <span class="brand-caption med-brand-sub" *ngIf="!collapsed">Espace Médecin</span>
         </div>
         <!-- User -->
         <a routerLink="/back/profil" class="med-user" *ngIf="!collapsed">
@@ -160,13 +155,8 @@ import { ChatbotComponent } from '../shared/chatbot.component';
       height:62px; display:flex; align-items:center; gap:4px;
     }
     .admin-brand { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; margin-right:14px; }
-    .admin-logo {
-      width:34px; height:34px; border-radius:9px;
-      background:linear-gradient(135deg,#3b82f6,#0f6cbd);
-      display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px;
-    }
-    .admin-brand-name { display:block; font-size:15px; font-weight:900; color:#fff; }
-    .admin-brand-sub  { display:block; font-size:10px; color:rgba(255,255,255,.5); }
+    .admin-brand .brand-chip .brand-logo { height:28px; }
+    .admin-brand-sub  { color:rgba(255,255,255,.55); }
 
     .admin-tabs { display:flex; gap:1px; flex:1; overflow-x:auto; scrollbar-width:none; }
     .admin-tabs::-webkit-scrollbar { display:none; }
@@ -241,16 +231,13 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     .med-sidebar::-webkit-scrollbar-thumb { background:rgba(255,255,255,.15); border-radius:99px; }
 
     .med-brand {
-      display:flex; align-items:center; gap:12px;
+      display:flex; flex-direction:column; align-items:flex-start; gap:8px;
       padding:20px 16px 14px; border-bottom:1px solid rgba(255,255,255,.12); flex-shrink:0;
     }
-    .med-logo {
-      width:38px; height:38px; border-radius:11px; flex-shrink:0;
-      background:rgba(255,255,255,.2); border:1.5px solid rgba(255,255,255,.3);
-      display:flex; align-items:center; justify-content:center; color:#fff; font-size:17px;
-    }
-    .med-brand-name { display:block; font-size:15px; font-weight:900; color:#fff; white-space:nowrap; }
-    .med-brand-sub  { display:block; font-size:10.5px; color:rgba(255,255,255,.6); white-space:nowrap; }
+    .med-sidebar.collapsed .med-brand { align-items:center; }
+    .med-logo-mark { padding:4px; }
+    .med-logo-mark img { display:block; width:30px; height:30px; object-fit:contain; }
+    .med-brand-sub  { color:rgba(255,255,255,.6); }
 
     .med-user {
       display:flex; align-items:center; gap:10px;

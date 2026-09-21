@@ -9,22 +9,15 @@ import { AuthService } from '../../core/auth.service';
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink, NgIf],
   template: `
-    <div class="auth-page">
-      <div class="auth-bg-shapes">
-        <span></span><span></span><span></span>
-      </div>
+    <div class="auth-split">
+      <!-- ── Formulaire ── -->
+      <section class="auth-form-side">
+        <a routerLink="/" class="auth-brand"><img src="assets/logo.png" alt="Medicare"></a>
 
-      <div class="auth-card">
-        <div class="auth-logo">
-          <div class="auth-logo-icon"><i class="fa fa-hospital"></i></div>
-          <div class="auth-logo-text">
-            <h2>MediCare</h2>
-            <p>Clinique Médicale</p>
-          </div>
-        </div>
-
-        <div class="auth-title">Créer un compte</div>
-        <div class="auth-subtitle">Rejoignez la clinique en tant que patient</div>
+        <div class="auth-form-wrap">
+        <span class="auth-eyebrow">Espace patient</span>
+        <h1 class="auth-title">Créer votre compte</h1>
+        <p class="auth-subtitle">Rejoignez la clinique et gérez votre parcours de soins en ligne.</p>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
           <div class="form-row">
@@ -47,14 +40,13 @@ import { AuthService } from '../../core/auth.service';
           </div>
           <div class="form-group">
             <label class="form-label"><i class="fa fa-lock"></i> Mot de passe</label>
-            <div style="position:relative">
+            <div class="auth-pwd">
               <input class="form-control" formControlName="motDePasse" [type]="showPwd ? 'text' : 'password'" placeholder="Minimum 4 caractères">
-              <button type="button" (click)="showPwd = !showPwd"
-                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748b;font-size:14px">
+              <button type="button" class="auth-pwd-toggle" (click)="showPwd = !showPwd">
                 <i [class]="showPwd ? 'fa fa-eye-slash' : 'fa fa-eye'"></i>
               </button>
             </div>
-            <small style="color:#ef4444;font-size:11.5px" *ngIf="form.get('motDePasse')?.invalid && form.get('motDePasse')?.touched">
+            <small class="auth-field-error" *ngIf="form.get('motDePasse')?.invalid && form.get('motDePasse')?.touched">
               Mot de passe requis (minimum 4 caractères)
             </small>
           </div>
@@ -63,18 +55,40 @@ import { AuthService } from '../../core/auth.service';
             <i class="fa fa-circle-exclamation"></i> {{ error }}
           </div>
 
-          <button class="btn btn-success btn-lg" type="submit" [disabled]="loading" style="width:100%; margin-top:4px">
+          <button class="auth-submit" type="submit" [disabled]="loading">
             <span class="spinner" *ngIf="loading"></span>
-            <i class="fa fa-user-plus" *ngIf="!loading"></i>
             {{ loading ? 'Création...' : 'Créer mon compte' }}
+            <i class="fa fa-arrow-right" *ngIf="!loading"></i>
           </button>
         </form>
 
         <div class="auth-footer">
           Déjà inscrit ?
-          <a routerLink="/login" class="auth-link"> Se connecter</a>
+          <a routerLink="/login" class="auth-link">Se connecter</a>
         </div>
-      </div>
+        </div>
+
+        <div class="auth-legal">© 2026 Medicare — Clinique Médicale</div>
+      </section>
+
+      <!-- ── Visuel ── -->
+      <aside class="auth-visual">
+        <img class="auth-photo" alt="Médecin avec stéthoscope"
+             src="assets/auth-register.jpg">
+
+        <div class="auth-badge"><i class="fa fa-shield-heart"></i> Inscription gratuite &amp; sécurisée</div>
+
+        <div class="auth-visual-head">
+          <h2>Un compte, <span>tout votre suivi</span> médical.</h2>
+          <p>Créez votre espace patient en moins d'une minute et gardez la main sur vos soins.</p>
+        </div>
+
+        <div class="auth-stats">
+          <div><b>1 min</b><span>Pour s'inscrire</span></div>
+          <div><b>Gratuit</b><span>Pour tous les patients</span></div>
+          <div><b>24/7</b><span>Accès en ligne</span></div>
+        </div>
+      </aside>
     </div>
   `
 })

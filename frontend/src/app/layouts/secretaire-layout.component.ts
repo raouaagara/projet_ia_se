@@ -17,11 +17,8 @@ import { ChatbotComponent } from '../shared/chatbot.component';
 
         <!-- Logo -->
         <div class="sl-brand">
-          <div class="sl-logo"><i class="fa fa-briefcase"></i></div>
-          <div>
-            <div class="sl-brand-name">MediCare</div>
-            <div class="sl-brand-role">Secrétariat</div>
-          </div>
+          <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+          <span class="brand-caption sl-brand-role">Secrétariat</span>
         </div>
 
         <!-- Navigation -->
@@ -100,11 +97,8 @@ import { ChatbotComponent } from '../shared/chatbot.component';
         <!-- Mobile sidebar -->
         <aside class="sl-sidebar sl-sidebar-mobile" [class.open]="sidebarOpen">
           <div class="sl-brand">
-            <div class="sl-logo"><i class="fa fa-briefcase"></i></div>
-            <div>
-              <div class="sl-brand-name">MediCare</div>
-              <div class="sl-brand-role">Secrétariat</div>
-            </div>
+            <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+            <span class="brand-caption sl-brand-role">Secrétariat</span>
           </div>
           <nav class="sl-nav">
             <a routerLink="/secretaire/dashboard"    (click)="sidebarOpen=false" class="sl-link"><i class="fa fa-chart-pie"></i><span>Dashboard</span></a>
@@ -151,17 +145,10 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     .sl-sidebar-mobile.open { left:0; }
 
     .sl-brand {
-      display:flex; align-items:center; gap:12px;
+      display:flex; flex-direction:column; align-items:flex-start; gap:8px;
       padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,.15);
     }
-    .sl-logo {
-      width:40px; height:40px; border-radius:11px; flex-shrink:0;
-      background:rgba(255,255,255,.2); border:1.5px solid rgba(255,255,255,.3);
-      display:flex; align-items:center; justify-content:center;
-      font-size:17px; color:#fff;
-    }
-    .sl-brand-name { font-size:15px; font-weight:900; color:#fff; }
-    .sl-brand-role { font-size:11px; color:rgba(255,255,255,.7); margin-top:1px; }
+    .sl-brand-role { color:rgba(255,255,255,.75); }
 
     .sl-nav { flex:1; padding:12px 12px; display:flex; flex-direction:column; gap:2px; }
     .sl-nav-section {

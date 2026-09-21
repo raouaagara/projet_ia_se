@@ -30,11 +30,8 @@ import { ChatbotComponent } from '../shared/chatbot.component';
       <header class="pt-nav">
         <div class="pt-nav-inner">
           <a class="pt-brand" routerLink="/">
-            <div class="pt-logo"><i class="fa fa-heart-pulse"></i></div>
-            <div>
-              <span class="pt-brand-name">MediCare</span>
-              <span class="pt-brand-sub">Espace Patient</span>
-            </div>
+            <img class="brand-logo" src="assets/logo.png" alt="Medicare">
+            <span class="brand-caption pt-brand-sub">Espace Patient</span>
           </a>
 
           <nav class="pt-tabs">
@@ -161,14 +158,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     }
 
     .pt-brand { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; margin-right:16px; }
-    .pt-logo {
-      width:38px; height:38px; border-radius:11px;
-      background:linear-gradient(135deg,#0ea5e9,#06b6d4);
-      display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px;
-      box-shadow:0 3px 10px rgba(14,165,233,.4);
-    }
-    .pt-brand-name { display:block; font-size:16px; font-weight:900; color:#0c4a6e; }
-    .pt-brand-sub  { display:block; font-size:10.5px; color:#7dd3fc; font-weight:600; }
+    .pt-brand-sub  { color:#d3121c; padding-left:10px; border-left:1px solid #e2e8f0; }
 
     .pt-tabs { display:flex; gap:2px; flex:1; overflow-x:auto; scrollbar-width:none; }
     .pt-tabs::-webkit-scrollbar { display:none; }

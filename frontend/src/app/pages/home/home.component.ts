@@ -11,11 +11,10 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
   template: `
 
     <!-- ═══════ NAVBAR ═══════ -->
-    <nav class="hn" [class.hn-solid]="scrolled">
+    <nav class="hn hn-solid" [class.hn-scrolled]="scrolled">
       <div class="hn-inner">
         <a class="hn-brand" routerLink="/">
-          <div class="hn-logo"><i class="fa fa-hospital"></i></div>
-          <span class="hn-name">MediCare</span>
+          <img class="brand-logo hn-logo-img" src="assets/logo.png" alt="Medicare">
         </a>
         <div class="hn-links">
           <a href="#services">Services</a>
@@ -315,8 +314,7 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
     <footer class="hf">
       <div class="hf-inner">
         <div class="hf-brand">
-          <div class="hf-logo"><i class="fa fa-hospital"></i></div>
-          <span class="hf-name">MediCare</span>
+          <span class="brand-chip hf-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
           <p class="hf-tag">Votre santé, notre priorité.</p>
         </div>
         <div class="hf-cols">
@@ -355,17 +353,12 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
 
     /* ═══════ NAVBAR ═══════ */
     .hn { position:fixed; top:0; left:0; right:0; z-index:1000; transition:all .3s; }
-    .hn-solid { background:rgba(255,255,255,.96); backdrop-filter:blur(16px); box-shadow:0 2px 20px rgba(0,0,0,.08); }
+    /* le hero est clair : la navbar garde toujours le style clair, l'ombre n'apparaît qu'au scroll */
+    .hn-solid { background:rgba(255,255,255,.8); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-bottom:1px solid rgba(226,232,240,.7); }
+    .hn-scrolled { background:rgba(255,255,255,.96); box-shadow:0 2px 20px rgba(0,0,0,.08); }
     .hn-inner { max-width:1200px; margin:0 auto; padding:0 24px; height:68px; display:flex; align-items:center; gap:28px; }
     .hn-brand { display:flex; align-items:center; gap:10px; }
-    .hn-logo {
-      width:40px; height:40px; border-radius:11px;
-      background:linear-gradient(135deg,#1e40af,#0f766e);
-      display:flex; align-items:center; justify-content:center; color:#fff; font-size:17px;
-      box-shadow:0 4px 12px rgba(30,64,175,.3);
-    }
-    .hn-name { font-size:18px; font-weight:900; color:#fff; transition:color .3s; }
-    .hn-solid .hn-name { color:#1e293b; }
+    .hn-logo-img { height:44px; }
     .hn-links { display:flex; gap:28px; margin-left:auto; }
     .hn-links a { font-size:14px; font-weight:500; color:rgba(255,255,255,.85); transition:color .2s; }
     .hn-solid .hn-links a { color:#475569; }
@@ -736,8 +729,8 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
     .hf { background:#0f172a; padding:52px 24px 0; }
     .hf-inner { max-width:1200px; margin:0 auto; display:flex; gap:60px; flex-wrap:wrap; padding-bottom:40px; border-bottom:1px solid rgba(255,255,255,.08); }
     .hf-brand { flex:1; min-width:200px; }
-    .hf-logo { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#1e40af,#0f766e); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; margin-bottom:10px; }
-    .hf-name { font-size:18px; font-weight:900; color:#fff; display:block; margin-bottom:8px; }
+    .hf-chip { margin-bottom:14px; padding:8px 14px; }
+    .hf-chip .brand-logo { height:40px; }
     .hf-tag  { font-size:13px; color:#475569; line-height:1.7; max-width:220px; }
     .hf-cols { display:flex; gap:60px; flex-wrap:wrap; }
     .hf-col  { display:flex; flex-direction:column; gap:10px; }

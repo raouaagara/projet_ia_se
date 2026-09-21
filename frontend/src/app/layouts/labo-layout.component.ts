@@ -17,11 +17,8 @@ import { ChatbotComponent } from '../shared/chatbot.component';
         <div class="ll-nav-inner">
 
           <a class="ll-brand" routerLink="/labo">
-            <div class="ll-logo"><i class="fa fa-flask"></i></div>
-            <div class="ll-brand-text">
-              <span class="ll-brand-name">MediCare</span>
-              <span class="ll-brand-sub">Espace Laboratoire</span>
-            </div>
+            <span class="brand-chip ll-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+            <span class="brand-caption ll-brand-sub">Espace Laboratoire</span>
           </a>
 
           <nav class="ll-tabs">
@@ -101,14 +98,10 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     }
 
     .ll-brand { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; margin-right:16px; }
-    .ll-logo {
-      width:36px; height:36px; border-radius:10px; flex-shrink:0;
-      background:linear-gradient(135deg,#7e22ce,#4338ca);
-      display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px;
-      box-shadow:0 3px 10px rgba(126,34,206,.3);
-    }
-    .ll-brand-name { display:block; font-size:15px; font-weight:900; color:var(--text,#0f172a); }
-    .ll-brand-sub  { display:block; font-size:11px; color:var(--text-muted,#94a3b8); }
+    /* pastille discrète : lisible en thème clair comme sombre */
+    .ll-chip { box-shadow:none; padding:3px 6px; }
+    .ll-chip .brand-logo { height:34px; }
+    .ll-brand-sub  { color:var(--text-muted,#94a3b8); padding-left:10px; border-left:1px solid var(--border,#e2e8f0); }
 
     .ll-tabs { display:flex; gap:2px; flex:1; overflow-x:auto; scrollbar-width:none; }
     .ll-tabs::-webkit-scrollbar { display:none; }
