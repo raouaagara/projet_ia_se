@@ -1,0 +1,51 @@
+@startuml
+!include style.iuml
+autonumber
+actor "Médecin" as M
+participant "Consultations\nComponent" as UI
+participant "Consultation\nController" as CC
+participant "Ordonnance\nController" as OC
+participant "Consultation\nService" as CS
+participant "Ordonnance\nService" as OS
+participant "Facture\nService" as FS
+participant "Notification\nService" as NS
+database "MySQL" as DB
+
+== Enregistrement de la consultation ==
+M -> UI : saisit diagnostic, observations, traitement
+UI -> CC : POST /api/consultations
+CC -> CS : creer(ConsultationDto)
+activate CS
+CS -> DB : save(consultation)
+CS -> DB : rdv.statut = TERMINE
+CS --> CC : ConsultationDto
+deactivate CS
+CC --> UI : 201 Created
+== Prescription (optionnelle) ==
+opt le médecin prescrit des médicaments
+  M -> UI : ajoute les lignes (médicament, posologie, durée)
+  UI -> OC : POST /api/ordonnances
+  OC -> OS : creer(OrdonnanceDto)
+  activate OS
+  OS -> DB : save(ordonnance + lignes)
+  OS -> NS : notifier(patient, NOUVELLE_PRESCRIPTION)
+  deactivate OS
+  OC --> UI : 201 Created
+end
+== Clôture et facturation automatique ==
+M -> UI : clique « Clôturer la consultation »
+UI -> CC : PUT /api/consultations/{id}/cloturer
+CC -> CS : cloturer(id)
+activate CS
+CS -> FS : genererFacture(consultation)
+activate FS
+FS -> DB : lire le tarif de l'acte (ActeMedical)
+FS -> DB : save(facture EN_ATTENTE + lignes)
+FS -> NS : notifier(patient, FACTURE_GENEREE)
+FS --> CS : FactureDto
+deactivate FS
+CS --> CC : ConsultationDto
+deactivate CS
+CC --> UI : 200 OK
+UI --> M : consultation clôturée, facture générée
+@enduml

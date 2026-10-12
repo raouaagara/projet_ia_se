@@ -1,0 +1,49 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Patient" as P
+actor "Secrétaire" as S
+actor "Médecin" as M
+actor "Administrateur" as A
+actor "Utilisateur\nauthentifié" as U
+actor "Système\n(planificateur)" as SYS
+
+rectangle "M2 · Rendez-vous, Planning & Notifications" {
+  usecase "Prendre un RDV en ligne" as PR
+  usecase "Choisir un créneau disponible" as CR <<nouveau>>
+  usecase "Vérifier la disponibilité\n(anti double réservation)" as VD <<nouveau>>
+  usecase "Consulter ses RDV" as CS
+  usecase "Annuler / reporter un RDV" as AN <<nouveau>>
+  usecase "Gérer les RDV\n(créer, modifier, supprimer)" as GR
+  usecase "Confirmer un RDV" as CO
+  usecase "Marquer un patient absent" as ABS <<nouveau>>
+  usecase "Consulter le planning\n(jour / semaine / mois)" as PL
+  usecase "Définir plages horaires\net indisponibilités" as PH <<nouveau>>
+  usecase "Envoyer les rappels\n24 h avant le RDV" as RA
+  usecase "Notifier les acteurs concernés" as NO
+  usecase "Consulter ses notifications" as CN
+  usecase "Marquer comme lue(s) /\nsupprimer" as ML
+}
+
+P --> PR
+PR ..> CR : <<include>>
+CR ..> VD : <<include>>
+P --> CS
+P --> AN
+S --> AN
+S --> GR
+A --> GR
+GR ..> VD : <<include>>
+CO .> GR : <<extend>>
+M --> CO
+M --> ABS
+M --> PL
+S --> PL
+M --> PH
+A --> PH
+SYS --> RA
+RA ..> NO : <<include>>
+PR ..> NO : <<include>>
+U --> CN
+ML .> CN : <<extend>>
+@enduml

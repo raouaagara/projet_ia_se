@@ -1,0 +1,32 @@
+@startuml
+!include style.iuml
+autonumber
+actor "Laborantin" as L
+participant "LaboResultats\nComponent" as UI
+participant "Labo\nController" as LC
+participant "Labo\nService" as LS
+participant "ExamenLaboratoire\nRepository" as ER
+participant "Notification\nService" as NS
+
+L -> UI : sélectionne un examen EN_COURS
+UI -> LC : GET /api/examens/{id}
+LC --> UI : examen + paramètres de référence
+L -> UI : saisit les valeurs, joint le fichier
+UI -> LC : POST /api/labo/resultats
+LC -> LS : publierResultat(ResultatLaboDto)
+activate LS
+LS -> ER : findById(id)
+ER --> LS : examen
+loop pour chaque paramètre saisi
+  LS -> LS : horsNorme = valeur hors [valeurMin ; valeurMax]
+end
+LS -> ER : save(statut = RESULTAT_DISPONIBLE, dateResultat)
+LS -> NS : notifier(patient, RESULTAT_DISPONIBLE)
+LS -> NS : notifier(médecin, RESULTAT_EXAMEN)
+opt au moins une valeur hors norme
+  LS -> NS : notifier(médecin, alerte « valeurs anormales »)
+end
+deactivate LS
+LC --> UI : 200 OK
+UI --> L : résultat publié
+@enduml

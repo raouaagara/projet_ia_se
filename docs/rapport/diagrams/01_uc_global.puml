@@ -1,0 +1,83 @@
+@startuml
+!include style.iuml
+left to right direction
+skinparam defaultFontSize 12
+skinparam nodesep 12
+skinparam ranksep 70
+
+actor "Administrateur" as A
+actor "Secrétaire" as S
+actor "Médecin" as M
+actor "Patient" as P
+actor "Laborantin" as L
+actor "Pharmacien" as PH
+actor "Système\n(planificateur)" as SYS
+actor "API IA\n(Groq)" as GROQ
+
+rectangle "MediCare — Plateforme de gestion clinique" {
+  package "M1 · Utilisateurs, Patients & Médecins" as P1 {
+    usecase "S'authentifier /\ngérer son profil" as UC11
+    usecase "Gérer les utilisateurs\net les rôles" as UC13
+    usecase "Gérer les médecins" as UC14
+    usecase "Gérer les patients" as UC15
+  }
+  package "M2 · Rendez-vous & Notifications" as P2 {
+    usecase "Prendre / gérer un RDV" as UC21
+    usecase "Consulter le planning" as UC22
+    usecase "Recevoir et gérer\nses notifications" as UC23
+    usecase "Envoyer les rappels" as UC24
+  }
+  package "M3 · Consultations & Facturation" as P3 {
+    usecase "Gérer les consultations\net le dossier médical" as UC31
+    usecase "Rédiger une ordonnance" as UC32
+    usecase "Gérer les factures\net paiements" as UC34
+  }
+  package "M4 · Examens & Laboratoire" as P4 {
+    usecase "Prescrire un examen" as UC41
+    usecase "Traiter et publier\nles résultats" as UC42
+    usecase "Consulter ses résultats" as UC44
+  }
+  package "M5 · IA & Aide à la décision" as P5 {
+    usecase "Discuter avec\nl'assistant IA" as UC51
+    usecase "Pré-triage des\nsymptômes" as UC52 <<nouveau>>
+    usecase "Résumé IA du dossier" as UC53 <<nouveau>>
+    usecase "Tableaux de bord\net prévisions" as UC54
+  }
+  package "M6 · Pharmacie & Stock" as P6 {
+    usecase "Gérer médicaments\net stock" as UC61 <<nouveau>>
+    usecase "Délivrer une ordonnance" as UC62 <<nouveau>>
+    usecase "Générer les alertes stock" as UC63 <<nouveau>>
+  }
+}
+
+A --> UC11
+A --> UC13
+A --> UC14
+S --> UC15
+S --> UC21
+S --> UC34
+M --> UC22
+M --> UC31
+M --> UC32
+UC11 -[hidden]-> UC41
+UC13 -[hidden]-> UC51
+UC21 -[hidden]-> UC52
+UC31 -[hidden]-> UC61
+UC34 -[hidden]-> UC63
+M --> UC41
+M --> UC53
+A --> UC54
+UC21 <-- P
+UC23 <-- P
+UC44 <-- P
+UC52 <-- P
+UC51 <-- P
+UC42 <-- L
+UC61 <-- PH
+UC62 <-- PH
+UC24 <-- SYS
+UC63 <-- SYS
+UC51 --> GROQ
+UC52 --> GROQ
+UC53 --> GROQ
+@enduml

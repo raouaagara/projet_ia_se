@@ -1,0 +1,60 @@
+@startuml
+!include style.iuml
+class ExamenLaboratoire {
+  - id : Long
+  - description : String
+  - statut : StatutExamen
+  - urgent : boolean «nouveau»
+  - dateDemande : LocalDate
+  - dateResultat : LocalDate
+  - resultatTexte : String
+  - fichierResultat : String
+  - notes : String
+  - dateCreation : LocalDateTime
+  + demarrer()
+  + publierResultat()
+  + annuler()
+}
+enum StatutExamen {
+  DEMANDE
+  EN_COURS
+  RESULTAT_DISPONIBLE
+  ANNULE
+}
+class TypeExamen <<nouveau>> {
+  - id : Long
+  - code : String {unique}
+  - libelle : String
+  - categorie : String
+  - tarif : BigDecimal
+  - delaiResultatJours : int
+}
+class ParametreExamen <<nouveau>> {
+  - id : Long
+  - nom : String
+  - unite : String
+  - valeurMin : Double
+  - valeurMax : Double
+}
+class ResultatParametre <<nouveau>> {
+  - id : Long
+  - valeur : Double
+  - horsNorme : boolean
+  - commentaire : String
+  + evaluer(parametre) : boolean
+}
+class Patient <<externe>>
+class Medecin <<externe>>
+class Consultation <<externe>>
+class Utilisateur <<externe>>
+
+Patient "1" -- "*" ExamenLaboratoire : concerne <
+Medecin "1" -- "*" ExamenLaboratoire : prescrit >
+Consultation "0..1" -- "*" ExamenLaboratoire : demandé lors de <
+Utilisateur "0..1" -- "*" ExamenLaboratoire : laborantin traite >
+ExamenLaboratoire "*" --> "1" TypeExamen
+ExamenLaboratoire --> StatutExamen
+TypeExamen "1" *-- "1..*" ParametreExamen
+ExamenLaboratoire "1" *-- "*" ResultatParametre
+ResultatParametre "*" --> "1" ParametreExamen
+@enduml

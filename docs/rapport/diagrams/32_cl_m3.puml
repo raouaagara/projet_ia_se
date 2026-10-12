@@ -1,0 +1,89 @@
+@startuml
+!include style.iuml
+class Consultation {
+  - id : Long
+  - dateConsultation : LocalDateTime
+  - diagnostic : String
+  - observations : String
+  - traitement : String
+  + cloturer()
+}
+class Ordonnance {
+  - id : Long
+  - dateEmission : LocalDate
+  - instructions : String
+  - medicaments : String «remplacé par les lignes»
+  + genererPdf() : byte[]
+}
+class LigneOrdonnance <<nouveau>> {
+  - id : Long
+  - posologie : String
+  - dureeJours : int
+  - quantite : int
+}
+class Facture {
+  - id : Long
+  - numeroFacture : String {unique}
+  - dateFacture : LocalDate
+  - montantTotal : BigDecimal
+  - montantPaye : BigDecimal
+  - statut : StatutPaiement
+  - notes : String
+  + calculerTotal()
+  + resteAPayer() : BigDecimal
+}
+class LigneFacture {
+  - id : Long
+  - description : String
+  - quantite : Integer
+  - prixUnitaire : BigDecimal
+  - total : BigDecimal
+  + calculerTotal()
+}
+class ActeMedical <<nouveau>> {
+  - id : Long
+  - code : String {unique}
+  - libelle : String
+  - tarif : BigDecimal
+  - actif : boolean
+}
+class Paiement <<nouveau>> {
+  - id : Long
+  - montant : BigDecimal
+  - datePaiement : LocalDateTime
+  - mode : ModePaiement
+  - reference : String
+}
+enum StatutPaiement {
+  EN_ATTENTE
+  PARTIELLEMENT_PAYE
+  PAYE
+  REMBOURSE
+  ANNULE
+}
+enum ModePaiement <<nouveau>> {
+  ESPECES
+  CARTE
+  CHEQUE
+  VIREMENT
+  ASSURANCE
+}
+class Patient <<externe>>
+class Medecin <<externe>>
+class RendezVous <<externe>>
+class Medicament <<externe>>
+
+Patient "1" -- "*" Consultation
+Medecin "1" -- "*" Consultation
+RendezVous "1" -- "0..1" Consultation : donne lieu à >
+Consultation "1" -- "*" Ordonnance : contient >
+Ordonnance "1" *-- "1..*" LigneOrdonnance
+LigneOrdonnance "*" --> "1" Medicament : prescrit >
+Consultation "1" -- "0..1" Facture : facturée par >
+Patient "1" -- "*" Facture
+Facture "1" *-- "1..*" LigneFacture
+LigneFacture "*" --> "0..1" ActeMedical
+Facture "1" *-- "*" Paiement : réglée par >
+Facture --> StatutPaiement
+Paiement --> ModePaiement
+@enduml

@@ -1,0 +1,39 @@
+@startuml
+!include style.iuml
+autonumber
+actor "Pharmacien" as PH
+participant "Delivrance\nComponent" as UI
+participant "Pharmacie\nController" as PC
+participant "Delivrance\nService" as DS
+participant "Stock\nService" as SS
+participant "LotMedicament\nRepository" as LR
+participant "Facture\nService" as FS
+participant "Notification\nService" as NS
+
+PH -> UI : ouvre une ordonnance à délivrer
+UI -> PC : GET /api/pharmacie/ordonnances/{id}
+PC --> UI : lignes + stock disponible
+PH -> UI : valide les quantités à délivrer
+UI -> PC : POST /api/pharmacie/delivrances
+PC -> DS : delivrer(ordonnanceId, lignes)
+activate DS
+note right of DS : @Transactional — tout ou rien
+loop pour chaque ligne d'ordonnance
+  DS -> SS : preleverFEFO(medicamentId, quantite)
+  activate SS
+  SS -> LR : lots non périmés triés par datePeremption
+  LR --> SS : lots
+  SS -> SS : décrémenter les lots\n+ MouvementStock(SORTIE)
+  SS --> DS : quantité servie
+  opt stock total < seuilAlerte
+    SS -> NS : notifier(pharmaciens, ALERTE_STOCK)
+  end
+  deactivate SS
+end
+DS -> DS : statut = COMPLETE ou PARTIELLE
+DS -> FS : ajouterLignes(facture du patient, médicaments)
+DS -> NS : notifier(patient, ORDONNANCE_DELIVREE)
+deactivate DS
+PC --> UI : 201 Created
+UI --> PH : délivrance enregistrée (bon imprimable)
+@enduml

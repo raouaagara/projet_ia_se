@@ -1,0 +1,92 @@
+@startuml
+!include style.iuml
+hide members
+skinparam defaultFontSize 11
+skinparam nodesep 25
+skinparam ranksep 40
+
+package "M1 · Utilisateurs" #F7FBFD {
+  class Utilisateur
+  enum Role
+  class Patient
+  class Medecin
+  class JournalAudit <<nouveau>>
+}
+package "M2 · Rendez-vous" #F7FBFD {
+  class RendezVous
+  class PlageHoraire <<nouveau>>
+  class Indisponibilite <<nouveau>>
+  class Notification
+}
+package "M3 · Consultations & Facturation" #F7FBFD {
+  class Consultation
+  class Ordonnance
+  class LigneOrdonnance <<nouveau>>
+  class ActeMedical <<nouveau>>
+  class Facture
+  class LigneFacture
+  class Paiement <<nouveau>>
+}
+package "M4 · Laboratoire" #F7FBFD {
+  class ExamenLaboratoire
+  class TypeExamen <<nouveau>>
+  class ParametreExamen <<nouveau>>
+  class ResultatParametre <<nouveau>>
+}
+package "M5 · IA" #F7FBFD {
+  class ConversationIA <<nouveau>>
+  class MessageIA <<nouveau>>
+  class TriageSymptomes <<nouveau>>
+  class AnalyseIA <<nouveau>>
+}
+package "M6 · Pharmacie" #F7FBFD {
+  class Medicament <<nouveau>>
+  class LotMedicament <<nouveau>>
+  class MouvementStock <<nouveau>>
+  class Fournisseur <<nouveau>>
+  class Delivrance <<nouveau>>
+  class LigneDelivrance <<nouveau>>
+}
+
+Utilisateur --> Role
+Utilisateur "1" -- "0..1" Patient
+Utilisateur "1" -- "0..1" Medecin
+Utilisateur "1" -- "*" JournalAudit
+Utilisateur "1" -- "*" Notification
+
+Patient "1" -- "*" RendezVous
+Medecin "1" -- "*" RendezVous
+Medecin "1" -- "*" PlageHoraire
+Medecin "1" -- "*" Indisponibilite
+
+RendezVous "1" -- "0..1" Consultation
+Patient "1" -- "*" Consultation
+Medecin "1" -- "*" Consultation
+Consultation "1" -- "*" Ordonnance
+Ordonnance "1" *-- "1..*" LigneOrdonnance
+Consultation "1" -- "0..1" Facture
+Patient "1" -- "*" Facture
+Facture "1" *-- "1..*" LigneFacture
+LigneFacture "*" -- "0..1" ActeMedical
+Facture "1" -- "*" Paiement
+
+Consultation "1" -- "*" ExamenLaboratoire
+Patient "1" -- "*" ExamenLaboratoire
+ExamenLaboratoire "*" -- "1" TypeExamen
+TypeExamen "1" *-- "*" ParametreExamen
+ExamenLaboratoire "1" *-- "*" ResultatParametre
+ResultatParametre "*" -- "1" ParametreExamen
+
+Utilisateur "1" -- "*" ConversationIA
+ConversationIA "1" *-- "*" MessageIA
+Patient "1" -- "*" TriageSymptomes
+Patient "1" -- "*" AnalyseIA
+
+LigneOrdonnance "*" -- "1" Medicament
+Medicament "1" *-- "*" LotMedicament
+LotMedicament "*" -- "0..1" Fournisseur
+LotMedicament "1" -- "*" MouvementStock
+Ordonnance "1" -- "*" Delivrance
+Delivrance "1" *-- "1..*" LigneDelivrance
+LigneDelivrance "*" -- "1" LotMedicament
+@enduml

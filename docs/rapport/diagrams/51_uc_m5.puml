@@ -1,0 +1,45 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Utilisateur\nauthentifié" as U
+actor "Patient" as P
+actor "Médecin" as M
+actor "Administrateur" as A
+actor "API IA\n(Groq)" as G
+
+P -up-|> U
+M -up-|> U
+A -up-|> U
+
+rectangle "M5 · IA & Aide à la décision" {
+  usecase "Discuter avec l'assistant\nMediAssist" as CH
+  usecase "Adapter le contexte\nau rôle connecté" as CTX
+  usecase "Consulter l'historique\ndes conversations" as HIS <<nouveau>>
+  usecase "Décrire ses symptômes\n(pré-triage)" as TR <<nouveau>>
+  usecase "Afficher l'alerte urgence" as URG <<nouveau>>
+  usecase "Prendre RDV avec le\nmédecin suggéré (M2)" as RDV <<nouveau>>
+  usecase "Générer le résumé IA\ndu dossier patient" as RES <<nouveau>>
+  usecase "Aide à l'interprétation\ndes résultats d'examen" as INT <<nouveau>>
+  usecase "Consulter le tableau de bord\n(KPI par rôle)" as DB
+  usecase "Consulter les statistiques\ndétaillées" as ST
+  usecase "Consulter les prévisions\n(affluence, absences)" as PRV <<nouveau>>
+  usecase "Exporter les statistiques\n(PDF / Excel)" as EXP <<nouveau>>
+}
+
+U --> CH
+CH ..> CTX : <<include>>
+HIS .> CH : <<extend>>
+P --> TR
+URG .> TR : <<extend>>
+RDV .> TR : <<extend>>
+M --> RES
+M --> INT
+U --> DB
+A --> ST
+A --> PRV
+EXP .> ST : <<extend>>
+CH --> G
+TR --> G
+RES --> G
+INT --> G
+@enduml

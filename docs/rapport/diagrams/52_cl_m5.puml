@@ -1,0 +1,84 @@
+@startuml
+!include style.iuml
+class ConversationIA <<nouveau>> {
+  - id : Long
+  - titre : String
+  - roleContexte : Role
+  - dateDebut : LocalDateTime
+}
+class MessageIA <<nouveau>> {
+  - id : Long
+  - emetteur : EmetteurMessage
+  - contenu : String
+  - dateEnvoi : LocalDateTime
+  - tokensUtilises : int
+}
+class TriageSymptomes <<nouveau>> {
+  - id : Long
+  - symptomes : String
+  - specialiteSuggeree : String
+  - niveauUrgence : NiveauUrgence
+  - justification : String
+  - dateTriage : LocalDateTime
+  + estUrgent() : boolean
+}
+class AnalyseIA <<nouveau>> {
+  - id : Long
+  - type : TypeAnalyseIA
+  - contenu : String
+  - modeleIA : String
+  - valideeParMedecin : boolean
+  - dateGeneration : LocalDateTime
+}
+enum EmetteurMessage <<nouveau>> {
+  UTILISATEUR
+  ASSISTANT
+}
+enum NiveauUrgence <<nouveau>> {
+  FAIBLE
+  MODERE
+  ELEVE
+  URGENCE_VITALE
+}
+enum TypeAnalyseIA <<nouveau>> {
+  RESUME_DOSSIER
+  INTERPRETATION_RESULTAT
+  PREVISION_AFFLUENCE
+  RISQUE_ABSENCE
+}
+class AssistantIAService <<service>> {
+  + discuter(utilisateurId, message) : MessageIA
+  + trierSymptomes(patientId, texte) : TriageSymptomes
+  + resumerDossier(patientId) : AnalyseIA
+  + interpreterResultat(examenId) : AnalyseIA
+}
+class GroqClient <<service>> {
+  - apiUrl : String
+  - modele : String
+  + envoyer(messages) : String
+}
+class StatistiqueService <<service>> {
+  + statistiquesGlobales(role) : StatistiqueDto
+  + statistiquesDetail() : StatistiqueDetailDto
+  + prevoirAffluence(semaine) : AnalyseIA
+}
+class Utilisateur <<externe>>
+class Patient <<externe>>
+class Medecin <<externe>>
+class ExamenLaboratoire <<externe>>
+
+Utilisateur "1" -- "*" ConversationIA : ouvre >
+ConversationIA "1" *-- "*" MessageIA
+MessageIA --> EmetteurMessage
+Patient "1" -- "*" TriageSymptomes : décrit >
+TriageSymptomes "*" --> "0..*" Medecin : médecins suggérés >
+TriageSymptomes --> NiveauUrgence
+Patient "0..1" -- "*" AnalyseIA : concerne <
+AnalyseIA "*" --> "0..1" ExamenLaboratoire : interprète >
+AnalyseIA --> TypeAnalyseIA
+AssistantIAService ..> GroqClient : <<use>>
+AssistantIAService ..> ConversationIA : <<create>>
+AssistantIAService ..> TriageSymptomes : <<create>>
+AssistantIAService ..> AnalyseIA : <<create>>
+StatistiqueService ..> AnalyseIA : <<create>>
+@enduml

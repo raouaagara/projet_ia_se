@@ -1,0 +1,41 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Pharmacien" as PH
+actor "Administrateur" as A
+actor "Médecin" as M
+actor "Patient" as P
+actor "Système\n(planificateur)" as SYS
+
+rectangle "M6 · Pharmacie & Stock" {
+  usecase "Gérer le catalogue\ndes médicaments" as CAT
+  usecase "Gérer les fournisseurs" as FOU
+  usecase "Enregistrer une réception\n(lot, péremption)" as REC
+  usecase "Consulter l'état du stock" as ETA
+  usecase "Ajuster le stock (inventaire)" as AJU
+  usecase "Consulter l'historique\ndes mouvements" as HIS
+  usecase "Consulter les ordonnances\nà délivrer" as ORD
+  usecase "Délivrer une ordonnance" as DEL
+  usecase "Prélever les lots (FEFO)\net mettre à jour le stock" as FEFO
+  usecase "Ajouter les médicaments\nà la facture (M3)" as FAC
+  usecase "Générer les alertes\nstock bas / péremption" as ALR
+  usecase "Vérifier la disponibilité\nd'un médicament" as DIS
+  usecase "Suivre la délivrance\nde son ordonnance" as SUI
+}
+
+PH --> CAT
+PH --> FOU
+PH --> REC
+PH --> ETA
+AJU .> ETA : <<extend>>
+PH --> HIS
+PH --> ORD
+PH --> DEL
+DEL ..> FEFO : <<include>>
+FAC .> DEL : <<extend>>
+A --> ETA
+A --> HIS
+ALR <-- SYS
+M --> DIS
+P --> SUI
+@enduml

@@ -1,0 +1,40 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Médecin" as M
+actor "Administrateur" as A
+actor "Laborantin" as L
+actor "Patient" as P
+
+rectangle "M4 · Examens & Laboratoire" {
+  usecase "Prescrire un examen" as PE
+  usecase "Annuler un examen" as AE
+  usecase "Consulter les résultats\nde ses patients" as CR
+  usecase "Voir l'évolution\nd'un paramètre" as EV <<nouveau>>
+  usecase "Gérer le catalogue des examens\net valeurs de référence" as CAT <<nouveau>>
+  usecase "Superviser l'activité\ndu laboratoire" as SUP
+  usecase "Consulter les examens à traiter\n(filtre statut / urgence)" as LT
+  usecase "Prendre en charge un examen" as PC
+  usecase "Saisir les résultats\npar paramètre" as SR <<nouveau>>
+  usecase "Contrôler les valeurs\nde référence" as VR <<nouveau>>
+  usecase "Joindre un fichier\n(PDF / image)" as JF
+  usecase "Publier les résultats" as PUB
+  usecase "Notifier patient et médecin" as NOT
+  usecase "Consulter / télécharger\nses résultats" as MR
+}
+
+M --> PE
+AE .> PE : <<extend>>
+M --> CR
+EV .> CR : <<extend>>
+A --> CAT
+A --> SUP
+L --> LT
+L --> PC
+L --> SR
+SR ..> VR : <<include>>
+JF .> SR : <<extend>>
+L --> PUB
+PUB ..> NOT : <<include>>
+P --> MR
+@enduml

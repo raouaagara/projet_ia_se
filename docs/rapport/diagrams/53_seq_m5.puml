@@ -1,0 +1,41 @@
+@startuml
+!include style.iuml
+autonumber
+actor "Patient" as P
+participant "Triage\nComponent" as UI
+participant "AssistantIA\nController" as AC
+participant "AssistantIA\nService" as AS
+participant "Groq\nClient" as GC
+participant "API Groq" as G <<externe>>
+participant "Medecin\nRepository" as MR
+participant "Triage\nRepository" as TR
+
+P -> UI : décrit ses symptômes
+UI -> AC : POST /api/ia/triage
+AC -> AS : trierSymptomes(patientId, texte)
+activate AS
+AS -> AS : construire le prompt\n(âge, sexe, antécédents — sans nom ni n° dossier)
+AS -> GC : envoyer(messages)
+GC -> G : POST /openai/v1/chat/completions
+G --> GC : JSON {specialite, urgence, justification}
+GC --> AS : réponse
+AS -> AS : valider et parser la réponse
+alt niveauUrgence = URGENCE_VITALE
+  AS -> TR : save(triage)
+  AS --> AC : TriageDto (urgence)
+  AC --> UI : 200 OK
+  UI --> P : « Contactez immédiatement les urgences »
+else autre niveau
+  AS -> MR : findBySpecialiteAndDisponibleTrue(specialite)
+  MR --> AS : médecins disponibles
+  AS -> TR : save(triage)
+  AS --> AC : TriageDto + médecins suggérés
+  AC --> UI : 200 OK
+  UI --> P : spécialité, urgence, médecins + bouton « Prendre RDV »
+end
+deactivate AS
+note over AS, G
+  Délai max 10 s. En cas d'échec de l'API : message de repli,
+  aucune donnée bloquante — l'IA ne remplace pas un avis médical.
+end note
+@enduml

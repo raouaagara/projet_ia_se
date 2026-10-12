@@ -1,0 +1,41 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Médecin" as M
+actor "Secrétaire" as S
+actor "Administrateur" as A
+actor "Patient" as P
+
+rectangle "M3 · Consultations, Ordonnances & Facturation" {
+  usecase "Enregistrer une consultation" as EC
+  usecase "Consulter le dossier\nmédical du patient" as DM
+  usecase "Rédiger une ordonnance\nstructurée" as RO <<nouveau>>
+  usecase "Rechercher un médicament\ndu catalogue (M6)" as RM <<nouveau>>
+  usecase "Télécharger l'ordonnance\nen PDF" as PDF <<nouveau>>
+  usecase "Générer automatiquement\nla facture" as GF <<nouveau>>
+  usecase "Gérer les factures" as GFA
+  usecase "Enregistrer un paiement" as PA
+  usecase "Gérer le catalogue\ndes actes médicaux" as ACT <<nouveau>>
+  usecase "Consulter les statistiques\nfinancières" as SF
+  usecase "Consulter son historique\n(consultations, ordonnances)" as HI
+  usecase "Consulter / télécharger\nses factures" as MF
+}
+
+M --> EC
+EC ..> DM : <<include>>
+M --> DM
+RO .> EC : <<extend>>
+RO ..> RM : <<include>>
+GF .> EC : <<extend>>
+M --> PDF
+S --> EC
+S --> GFA
+S --> PA
+PA .> GFA : <<extend>>
+A --> ACT
+A --> SF
+A --> GFA
+P --> HI
+P --> MF
+P --> PDF
+@enduml

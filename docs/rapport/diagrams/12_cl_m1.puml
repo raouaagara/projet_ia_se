@@ -1,0 +1,66 @@
+@startuml
+!include style.iuml
+class Utilisateur {
+  - id : Long
+  - email : String {unique}
+  - motDePasse : String {BCrypt}
+  - nom : String
+  - prenom : String
+  - telephone : String
+  - role : Role
+  - actif : boolean
+  - medecinRattacheId : Long
+  - dateCreation : LocalDateTime
+  + changerMotDePasse(ancien, nouveau)
+  + activer() / desactiver()
+}
+enum Role {
+  ADMIN
+  MEDECIN
+  SECRETAIRE
+  PATIENT
+  LABO
+  PHARMACIEN «nouveau»
+}
+class Patient {
+  - id : Long
+  - numeroDossier : String {unique}
+  - nom : String
+  - prenom : String
+  - dateNaissance : LocalDate
+  - sexe : String
+  - telephone : String
+  - adresse : String
+  - groupeSanguin : String
+  - allergies : String
+  - antecedents : String
+  + calculerAge() : int
+}
+class Medecin {
+  - id : Long
+  - matricule : String {unique}
+  - nom : String
+  - prenom : String
+  - specialite : String
+  - telephone : String
+  - email : String
+  - horaires : String
+  - faculte : String
+  - disponible : boolean
+}
+class JournalAudit <<nouveau>> {
+  - id : Long
+  - action : String
+  - entite : String
+  - entiteId : Long
+  - details : String
+  - adresseIp : String
+  - dateAction : LocalDateTime
+}
+
+Utilisateur "*" --> "1" Role
+Utilisateur "1" -- "0..1" Patient : possède >
+Utilisateur "1" -- "0..1" Medecin : possède >
+Utilisateur "*" -- "0..1" Medecin : secrétaire rattachée à >
+Utilisateur "1" -- "*" JournalAudit : effectue >
+@enduml

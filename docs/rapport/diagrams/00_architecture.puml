@@ -1,0 +1,40 @@
+@startuml
+!include style.iuml
+skinparam defaultFontSize 12
+
+node "Poste client" as PC {
+  component "Navigateur web" as NAV
+}
+
+node "Frontend — Angular 17 (port 4200)" as FE {
+  component "Layouts par rôle\n(Back, Secrétaire, Patient,\nLabo, Pharmacie)" as LAY
+  component "Pages / Composants\npar module (M1…M6)" as PAGES
+  component "Services HTTP par module\n+ AuthService" as SRV
+  component "authInterceptor (JWT)\nauthGuard / roleGuard" as GUARD
+}
+
+node "Backend — Spring Boot 3.2 / Java 17 (port 8081)" as BE {
+  component "Filtre JWT\n+ SecurityConfig" as SEC
+  component "Contrôleurs REST\n/api/**" as CTRL
+  component "Services métier\n(M1…M6)" as SVC
+  component "Repositories\nSpring Data JPA" as REPO
+  component "Tâches planifiées\n(@Scheduled : rappels,\nalertes stock)" as SCH
+  component "Client IA\n(AssistantIAService)" as IA
+}
+
+database "MySQL 8\nclinique_db" as DB
+cloud "API Groq\n(modèle LLM)" as GROQ
+
+NAV --> LAY : HTTP
+LAY --> PAGES
+PAGES --> SRV
+SRV --> GUARD
+GUARD --> SEC : REST / JSON\nAuthorization: Bearer JWT
+SEC --> CTRL
+CTRL --> SVC
+SVC --> REPO
+SCH --> SVC
+SVC --> IA
+REPO --> DB : JDBC / Hibernate
+IA --> GROQ : HTTPS
+@enduml

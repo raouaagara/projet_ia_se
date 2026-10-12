@@ -1,0 +1,35 @@
+@startuml
+!include style.iuml
+autonumber
+actor "Patient" as P
+participant "RendezVousFront\nComponent" as UI
+participant "RendezVous\nController" as RC
+participant "RendezVous\nService" as RS
+participant "Planning\nService" as PS
+participant "RendezVous\nRepository" as RR
+participant "Notification\nService" as NS
+
+P -> UI : choisit un médecin et une date
+UI -> RC : GET /api/rendez-vous/creneaux?medecinId&date
+RC -> PS : creneauxDisponibles(medecinId, date)
+PS -> RR : findByMedecinAndDate(medecinId, date)
+RR --> PS : RDV existants
+PS -> PS : plages horaires − RDV − indisponibilités
+PS --> RC : créneaux libres
+RC --> UI : 200 OK [créneaux]
+P -> UI : sélectionne un créneau + saisit le motif
+UI -> RC : POST /api/rendez-vous
+RC -> RS : creer(RendezVousDto)
+RS -> PS : estDisponible(medecinId, dateHeure)
+alt créneau libre
+  RS -> RR : save(rdv, statut = PLANIFIE)
+  RS -> NS : notifier(médecin, RAPPEL_RDV)
+  RS -> NS : notifier(patient, RDV_CONFIRME)
+  RC --> UI : 201 Created
+  UI --> P : confirmation du rendez-vous
+else créneau déjà réservé
+  RS --> RC : ConflitCreneauException
+  RC --> UI : 409 Conflict
+  UI --> P : « Créneau indisponible, choisissez-en un autre »
+end
+@enduml

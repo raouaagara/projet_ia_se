@@ -1,0 +1,48 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Visiteur" as V
+actor "Utilisateur\nauthentifié" as U
+actor "Administrateur" as A
+actor "Secrétaire" as S
+actor "Médecin" as M
+actor "Patient" as P
+A -up-|> U
+S -up-|> U
+M -up-|> U
+P -up-|> U
+
+rectangle "M1 · Utilisateurs, Patients & Médecins" {
+  usecase "Créer un compte patient" as R
+  usecase "S'authentifier" as AUTH
+  usecase "Se déconnecter" as OUT
+  usecase "Gérer son profil" as PROF
+  usecase "Changer son mot de passe" as MDP <<nouveau>>
+  usecase "Gérer les comptes utilisateurs" as GU
+  usecase "Attribuer un rôle /\nactiver-désactiver un compte" as ROLE
+  usecase "Rattacher une secrétaire\nà un médecin" as RAT
+  usecase "Gérer les médecins" as GM
+  usecase "Gérer les fiches patients" as GP
+  usecase "Rechercher un patient" as RP <<nouveau>>
+  usecase "Consulter la liste\ndes médecins" as LM
+  usecase "Consulter le journal d'audit" as AUD <<nouveau>>
+}
+
+V --> R
+U --> AUTH
+U --> OUT
+U --> PROF
+MDP .> PROF : <<extend>>
+A --> GU
+ROLE .> GU : <<extend>>
+RAT .> GU : <<extend>>
+A --> GM
+A --> AUD
+S --> GP
+A --> GP
+S --> RP
+M --> RP
+GP ..> RP : <<include>>
+P --> LM
+
+@enduml

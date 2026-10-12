@@ -1,0 +1,79 @@
+@startuml
+!include style.iuml
+class RendezVous {
+  - id : Long
+  - dateHeure : LocalDateTime
+  - dureeMinutes : int «nouveau»
+  - motif : String
+  - statut : StatutRendezVous
+  - notes : String
+  - rappelEnvoye : boolean «nouveau»
+  + confirmer()
+  + annuler(motif)
+  + reporter(nouvelleDate)
+  + estModifiable() : boolean
+}
+enum StatutRendezVous {
+  PLANIFIE
+  CONFIRME
+  ANNULE
+  TERMINE
+  ABSENT «nouveau»
+}
+class PlageHoraire <<nouveau>> {
+  - id : Long
+  - jourSemaine : DayOfWeek
+  - heureDebut : LocalTime
+  - heureFin : LocalTime
+  - dureeCreneauMin : int
+  + genererCreneaux(date) : List<LocalDateTime>
+}
+class Indisponibilite <<nouveau>> {
+  - id : Long
+  - dateDebut : LocalDateTime
+  - dateFin : LocalDateTime
+  - motif : String
+}
+class Notification {
+  - id : Long
+  - titre : String
+  - message : String
+  - type : TypeNotification
+  - canal : CanalNotification «nouveau»
+  - lue : boolean
+  - dateCreation : LocalDateTime
+  - referenceId : Long
+  - referenceType : String
+  + marquerLue()
+}
+enum TypeNotification {
+  RAPPEL_RDV
+  RDV_CONFIRME
+  RDV_ANNULE
+  RDV_REPORTE «nouveau»
+  RESULTAT_EXAMEN
+  RESULTAT_DISPONIBLE
+  NOUVELLE_PRESCRIPTION
+  FACTURE_GENEREE
+  ORDONNANCE_DELIVREE «nouveau»
+  ALERTE_STOCK «nouveau»
+  INFORMATION
+}
+enum CanalNotification <<nouveau>> {
+  APPLICATION
+  EMAIL
+  SMS
+}
+class Patient <<externe>>
+class Medecin <<externe>>
+class Utilisateur <<externe>>
+
+Patient "1" -- "*" RendezVous : prend >
+Medecin "1" -- "*" RendezVous : reçoit >
+Medecin "1" *-- "*" PlageHoraire : travaille selon >
+Medecin "1" *-- "*" Indisponibilite : déclare >
+RendezVous --> StatutRendezVous
+Utilisateur "1" -- "*" Notification : reçoit >
+Notification --> TypeNotification
+Notification --> CanalNotification
+@enduml

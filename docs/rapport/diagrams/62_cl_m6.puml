@@ -1,0 +1,84 @@
+@startuml
+!include style.iuml
+class Medicament <<nouveau>> {
+  - id : Long
+  - code : String {unique}
+  - nomCommercial : String
+  - dci : String
+  - forme : String
+  - dosage : String
+  - prixUnitaire : BigDecimal
+  - seuilAlerte : int
+  - surOrdonnance : boolean
+  - actif : boolean
+  + stockTotal() : int
+  + estSousSeuil() : boolean
+}
+class LotMedicament <<nouveau>> {
+  - id : Long
+  - numeroLot : String
+  - quantiteInitiale : int
+  - quantiteRestante : int
+  - datePeremption : LocalDate
+  - dateReception : LocalDate
+  - prixAchat : BigDecimal
+  + estPerime() : boolean
+  + prelever(quantite)
+}
+class MouvementStock <<nouveau>> {
+  - id : Long
+  - type : TypeMouvement
+  - quantite : int
+  - dateMouvement : LocalDateTime
+  - motif : String
+}
+class Fournisseur <<nouveau>> {
+  - id : Long
+  - nom : String
+  - telephone : String
+  - email : String
+  - adresse : String
+}
+class Delivrance <<nouveau>> {
+  - id : Long
+  - dateDelivrance : LocalDateTime
+  - statut : StatutDelivrance
+  - montantTotal : BigDecimal
+}
+class LigneDelivrance <<nouveau>> {
+  - id : Long
+  - quantiteDelivree : int
+  - prixUnitaire : BigDecimal
+}
+enum TypeMouvement <<nouveau>> {
+  ENTREE
+  SORTIE
+  AJUSTEMENT
+  PEREMPTION
+}
+enum StatutDelivrance <<nouveau>> {
+  EN_ATTENTE
+  PARTIELLE
+  COMPLETE
+  ANNULEE
+}
+class Ordonnance <<externe>>
+class LigneOrdonnance <<externe>>
+class Utilisateur <<externe>>
+class Facture <<externe>>
+
+Medicament "1" *-- "*" LotMedicament
+LotMedicament "*" --> "0..1" Fournisseur : livré par >
+LotMedicament "1" -- "*" MouvementStock
+MouvementStock -right-> TypeMouvement
+MouvementStock "*" --> "1" Utilisateur : effectué par >
+Ordonnance "1" *-- "1..*" LigneOrdonnance
+LigneOrdonnance "*" -right-> "1" Medicament
+Ordonnance "1" -- "*" Delivrance : servie par >
+Delivrance "1" *-- "1..*" LigneDelivrance
+LigneDelivrance "*" --> "1" LigneOrdonnance
+LigneDelivrance "*" -right-> "1" LotMedicament : prélevée sur >
+Delivrance "*" -left-> "1" Utilisateur : pharmacien >
+Delivrance "0..1" --> "0..1" Facture : facturée dans >
+Delivrance --> StatutDelivrance
+@enduml

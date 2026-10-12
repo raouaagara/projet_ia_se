@@ -1,0 +1,36 @@
+@startuml
+!include style.iuml
+autonumber
+actor "Utilisateur" as U
+participant "LoginComponent" as UI
+participant "AuthService\n(Angular)" as FAS
+participant "AuthController" as AC
+participant "AuthService\n(Spring)" as BAS
+participant "AuthenticationManager" as AM
+participant "UtilisateurRepository" as UR
+participant "JwtService" as JS
+
+U -> UI : saisit email + mot de passe
+UI -> FAS : login(email, motDePasse)
+FAS -> AC : POST /api/auth/login
+AC -> BAS : login(LoginRequest)
+BAS -> AM : authenticate(email, motDePasse)
+AM -> UR : findByEmail(email)
+UR --> AM : Utilisateur
+alt identifiants valides et compte actif
+  AM --> BAS : Authentication
+  BAS -> JS : generateToken(utilisateur)
+  JS --> BAS : jeton JWT
+  BAS --> AC : AuthResponse(token, rôle, id)
+  AC --> FAS : 200 OK
+  FAS -> FAS : stocker le jeton (localStorage)
+  FAS --> UI : rôle
+  UI --> U : redirection vers l'espace du rôle\n(/back, /secretaire, /front, /labo, /pharmacie)
+else identifiants invalides ou compte désactivé
+  AM --> BAS : BadCredentialsException
+  BAS --> AC : exception
+  AC --> FAS : 401 Unauthorized
+  FAS --> UI : erreur
+  UI --> U : « Email ou mot de passe incorrect »
+end
+@enduml
