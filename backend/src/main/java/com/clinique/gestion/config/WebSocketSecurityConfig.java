@@ -1,19 +1,10 @@
 package com.clinique.gestion.config;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
-import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
-
-@Configuration
-public class WebSocketSecurityConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer {
-
-    @Override
-    protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
-        messages.anyMessage().permitAll(); // JWT validé via le filtre HTTP existant
-    }
-
-    @Override
-    protected boolean sameOriginDisabled() {
-        return true; // Désactiver la vérification CSRF pour WebSocket
-    }
+/**
+ * WebSocket security is handled by the main SecurityConfig.
+ * All WebSocket connections are permitted (JWT validated via HTTP filter).
+ * This class is intentionally left empty for Spring Security 6 compatibility.
+ */
+public class WebSocketSecurityConfig {
+    // No configuration needed — WebSocket endpoints are permitted in SecurityConfig
 }
