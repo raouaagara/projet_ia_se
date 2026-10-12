@@ -335,7 +335,7 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
     </footer>
 
     <!-- ═══════ CHATBOT PUBLIC ═══════ -->
-    <app-chatbot></app-chatbot>
+    <app-chatbot forceRole="PUBLIC"></app-chatbot>
   `,
   styles: [`
     :host { display:block; background:#fff; font-family:'Inter','Plus Jakarta Sans',sans-serif; }

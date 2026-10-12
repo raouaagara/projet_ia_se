@@ -1,7 +1,7 @@
-import { Component, signal, ViewChild, ElementRef, AfterViewChecked, inject } from '@angular/core';
+import { Component, signal, ViewChild, ElementRef, AfterViewChecked, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpBackend } from '@angular/common/http';
 import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
 
@@ -272,6 +272,11 @@ interface Msg { from: 'user' | 'bot'; text: string; time: string; typing?: boole
 export class ChatbotComponent implements AfterViewChecked {
   @ViewChild('scrollContainer') private scrollEl!: ElementRef;
 
+  /** Forcer un rôle indépendamment de l'utilisateur connecté.
+   *  Utiliser 'PUBLIC' sur la page d'accueil pour toujours afficher
+   *  le contexte visiteur, même si un médecin est connecté. */
+  @Input() forceRole?: string;
+
   open   = signal(false);
   draft  = '';
   busy   = false;
@@ -283,7 +288,12 @@ export class ChatbotComponent implements AfterViewChecked {
     time: this.now()
   }]);
 
-  constructor(private api: ApiService, public auth: AuthService, private http: HttpClient) {}
+  constructor(private api: ApiService, public auth: AuthService, private http: HttpClient, private httpBackend: HttpBackend) {
+    // Client HTTP sans intercepteurs pour les appels externes (Groq)
+    this.httpDirect = new HttpClient(httpBackend);
+  }
+
+  private httpDirect: HttpClient;
 
   ngAfterViewChecked(): void { this.scrollToBottom(); }
 
@@ -302,8 +312,8 @@ export class ChatbotComponent implements AfterViewChecked {
     this.busy  = true;
     this.messages.update(l => [...l, { from: 'bot', text: '', time: '', typing: true }]);
 
-    const role     = this.auth.role() ?? 'PATIENT';
-    const userName = this.auth.current()?.prenom ?? '';
+    const role     = this.effectiveRole();
+    const userName = this.forceRole ? '' : (this.auth.current()?.prenom ?? '');
 
     // Appel direct Groq depuis le frontend
     this.api.stats().subscribe({
@@ -320,9 +330,32 @@ export class ChatbotComponent implements AfterViewChecked {
   }
 
   private callGroq(message: string, systemPrompt: string): void {
+    // Clé API injectée via variable d'environnement (ne pas commiter)
+    const apiKey = (window as any).__GROQ_API_KEY__ || '';
+    if (!apiKey) {
+      // Pas de clé → fallback backend directement
+      this.api.chatbot(message, 'clinique', this.effectiveRole(),
+        this.forceRole ? '' : (this.auth.current()?.prenom ?? '')).subscribe({
+        next: (res) => {
+          this.busy = false;
+          this.messages.update(l => [
+            ...l.filter(m => !m.typing),
+            { from: 'bot', text: res.reponse, time: this.now() }
+          ]);
+        },
+        error: () => {
+          this.busy = false;
+          this.messages.update(l => [
+            ...l.filter(m => !m.typing),
+            { from: 'bot', text: '⚠️ Service temporairement indisponible.', time: this.now() }
+          ]);
+        }
+      });
+      return;
+    }
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer YOUR_GROQ_API_KEY'
+      'Authorization': `Bearer ${apiKey}`
     });
 
     const body = {
@@ -335,7 +368,7 @@ export class ChatbotComponent implements AfterViewChecked {
       temperature: 0.7
     };
 
-    this.http.post<any>('https://api.groq.com/openai/v1/chat/completions', body, { headers }).subscribe({
+    this.httpDirect.post<any>('https://api.groq.com/openai/v1/chat/completions', body, { headers }).subscribe({
       next: (res) => {
         this.busy = false;
         const reply = res?.choices?.[0]?.message?.content ?? 'Je n\'ai pas pu répondre.';
@@ -348,7 +381,7 @@ export class ChatbotComponent implements AfterViewChecked {
       error: () => {
         this.busy = false;
         // Fallback: appel backend
-        this.api.chatbot(message, 'clinique', this.auth.role() ?? 'PATIENT', this.auth.current()?.prenom ?? '').subscribe({
+        this.api.chatbot(message, 'clinique', this.effectiveRole(), this.forceRole ? '' : (this.auth.current()?.prenom ?? '')).subscribe({
           next: (res) => {
             this.messages.update(l => [
               ...l.filter(m => !m.typing),
@@ -500,14 +533,21 @@ RÈGLES :
       // ── PATIENT ───────────────────────────────────────────────────────────
       default:
         return `Tu es MediAssist, l'assistant santé numérique de la clinique MediCare.
-Tu t'adresses à ${name}, patient de la clinique.
+${name && name !== 'utilisateur' ? `Tu t'adresses à ${name}.` : 'Tu t\'adresses à un visiteur ou patient de la clinique.'}
 
 INFORMATIONS CLINIQUE :
 - Médecins disponibles : ${stats?.medecinsDisponibles ?? 0} sur ${stats?.medecins ?? 0}
 - Horaires : Lun-Ven 08h-18h, Sam 09h-13h
-- Services : Consultations, Examens, Ordonnances, Facturation
+- Services : Consultations générales, Examens de laboratoire, Ordonnances, Facturation
 
-TON RÔLE AVEC LE PATIENT :
+COMMENT PRENDRE UN RENDEZ-VOUS :
+1. Créer un compte sur le site (bouton "Prendre RDV")
+2. Se connecter à l'espace patient
+3. Aller dans "Mes rendez-vous" → "Nouveau rendez-vous"
+4. Choisir le médecin, la date et l'heure souhaitée
+5. Confirmer — une notification de confirmation sera envoyée
+
+TON RÔLE :
 1. ORIENTATION : guide pour prendre un rendez-vous, trouver le bon spécialiste
 2. INFORMATION SANTÉ : réponses claires sur les symptômes courants, prévention, hygiène de vie
 3. NAVIGATION PLATEFORME : explique comment utiliser l'espace patient (RDV, dossier, examens, factures)
@@ -519,9 +559,10 @@ RÈGLES ABSOLUES :
 - Utilise un langage SIMPLE, clair et rassurant — pas de jargon médical sans explication
 - Tu n'es PAS médecin — tes réponses sont informatives et éducatives UNIQUEMENT
 - Ne pose JAMAIS de diagnostic, même partiel
-- Pour tout symptôme grave : "Consultez un médecin rapidement" ou "Appelez le 15 si urgence vitale"
+- Pour tout symptôme grave : réponds "Consultez un médecin rapidement" ou "Appelez le 15 si urgence vitale"
 - Sois empathique, chaleureux et rassurant
-- Réponds TOUJOURS en français`;
+- Réponds TOUJOURS en français
+- Ne recopie JAMAIS les données brutes des statistiques dans ta réponse — réponds avec des phrases naturelles`;
     }
   }
 
@@ -538,7 +579,7 @@ RÈGLES ABSOLUES :
   // ── Role-specific ──────────────────────────────────────
 
   suggestions(): { icon: string; label: string; text: string }[] {
-    const role = this.auth.role();
+    const role = this.effectiveRole();
     if (role === 'MEDECIN') return [
       { icon:'fa fa-calendar-check', label:'Mes RDV',           text:'Combien de rendez-vous ai-je planifiés ?' },
       { icon:'fa fa-users',          label:'Mes patients',       text:'Donne-moi un résumé de mon activité' },
@@ -575,7 +616,7 @@ RÈGLES ABSOLUES :
   }
 
   welcomeMsg(): string {
-    const role = this.auth.role();
+    const role = this.effectiveRole();
     const name = this.auth.current()?.prenom ?? '';
     const greeting = new Date().getHours() < 12 ? 'Bonjour' : 'Bonsoir';
     if (role === 'MEDECIN')
@@ -590,23 +631,30 @@ RÈGLES ABSOLUES :
   }
 
   roleLabel(): string {
-    const m: Record<string,string> = { MEDECIN:'Espace Médecin', ADMIN:'Administration', SECRETAIRE:'Secrétariat', PATIENT:'Espace Patient', LABO:'Laboratoire' };
-    return m[this.auth.role()??'PATIENT'] ?? 'Espace Patient';
+    const m: Record<string,string> = { MEDECIN:'Espace Médecin', ADMIN:'Administration', SECRETAIRE:'Secrétariat', PATIENT:'Espace Patient', LABO:'Laboratoire', PUBLIC:'Accueil' };
+    return m[this.effectiveRole()??'PATIENT'] ?? 'Espace Patient';
   }
   roleIcon(): string {
-    const m: Record<string,string> = { MEDECIN:'fa fa-user-doctor', ADMIN:'fa fa-shield-halved', SECRETAIRE:'fa fa-briefcase', PATIENT:'fa fa-user', LABO:'fa fa-flask' };
-    return m[this.auth.role()??'PATIENT'] ?? 'fa fa-user';
+    const m: Record<string,string> = { MEDECIN:'fa fa-user-doctor', ADMIN:'fa fa-shield-halved', SECRETAIRE:'fa fa-briefcase', PATIENT:'fa fa-user', LABO:'fa fa-flask', PUBLIC:'fa fa-house-medical' };
+    return m[this.effectiveRole()??'PATIENT'] ?? 'fa fa-user';
   }
   roleBadgeClass(): string {
-    const m: Record<string,string> = { MEDECIN:'cb-role-badge badge-medecin', ADMIN:'cb-role-badge badge-admin', SECRETAIRE:'cb-role-badge badge-secretaire', PATIENT:'cb-role-badge badge-patient', LABO:'cb-role-badge badge-labo' };
-    return m[this.auth.role()??'PATIENT'] ?? 'cb-role-badge badge-patient';
+    const m: Record<string,string> = { MEDECIN:'cb-role-badge badge-medecin', ADMIN:'cb-role-badge badge-admin', SECRETAIRE:'cb-role-badge badge-secretaire', PATIENT:'cb-role-badge badge-patient', LABO:'cb-role-badge badge-labo', PUBLIC:'cb-role-badge badge-patient' };
+    return m[this.effectiveRole()??'PATIENT'] ?? 'cb-role-badge badge-patient';
   }
   modelName(): string { return 'Llama 3'; }
-    inputPlaceholder(): string {
-    if (this.auth.role() === 'MEDECIN') return 'Question médicale, note clinique...';
-    if (this.auth.role() === 'ADMIN') return 'Statistiques, gestion, analyse...';
-    if (this.auth.role() === 'LABO') return 'Protocole, examen, résultat...';
+  inputPlaceholder(): string {
+    const role = this.effectiveRole();
+    if (role === 'MEDECIN') return 'Question médicale, note clinique...';
+    if (role === 'ADMIN') return 'Statistiques, gestion, analyse...';
+    if (role === 'LABO') return 'Protocole, examen, résultat...';
     return 'Posez votre question...';
+  }
+
+  /** Retourne le rôle effectif : forceRole prioritaire sur auth.role() */
+  effectiveRole(): string {
+    if (this.forceRole) return this.forceRole.toUpperCase();
+    return this.auth.role() ?? 'PATIENT';
   }
 
   private scrollToBottom(): void {

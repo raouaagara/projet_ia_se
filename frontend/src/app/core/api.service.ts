@@ -108,7 +108,26 @@ export class ApiService {
   createNotifTest(uid: number) { return this.http.post(`${this.base}/notifications/test/${uid}`, {}); }
 
   // ── CHATBOT ──────────────────────────────────────────────────────
-  chatbot(message: string, contexte = 'clinique', role?: string, userName?: string) {
-    return this.http.post<{ reponse: string; source: string }>(`${this.base}/chatbot`, { message, contexte, role, userName });
+  chatbot(message: string, contexte = 'clinique', role?: string, userName?: string,
+          utilisateurId?: number, sessionId?: string) {
+    return this.http.post<{ reponse: string; source: string; sessionId: string }>(
+      `${this.base}/chatbot`, { message, contexte, role, userName, utilisateurId, sessionId });
+  }
+  chatHistorique(uid: number) { return this.http.get<any[]>(`${this.base}/chatbot/historique/${uid}`); }
+  chatSession(sid: string)    { return this.http.get<any[]>(`${this.base}/chatbot/session/${sid}`); }
+  chatDeleteHistorique(uid: number) { return this.http.delete(`${this.base}/chatbot/historique/${uid}`); }
+
+  // ── PDF EXPORT ────────────────────────────────────────────────────
+  pdfOrdonnance(id: number) {
+    return this.http.get(`${this.base}/pdf/ordonnance/${id}`,
+      { responseType: 'blob' });
+  }
+  pdfFacture(id: number) {
+    return this.http.get(`${this.base}/pdf/facture/${id}`,
+      { responseType: 'blob' });
+  }
+  pdfExamen(id: number) {
+    return this.http.get(`${this.base}/pdf/examen/${id}`,
+      { responseType: 'blob' });
   }
 }

@@ -4,6 +4,7 @@ import { NgFor, NgIf, DatePipe, SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { PdfService } from '../../core/pdf.service';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -131,6 +132,10 @@ import { catchError } from 'rxjs/operators';
               <button class="ex-act-btn del" (click)="remove(e.id)"
                 *ngIf="isAdmin() || isMedecin()" title="Supprimer">
                 <i class="fa fa-trash"></i>
+              </button>
+              <button class="ex-act-btn pdf" (click)="exportPdf(e)"
+                *ngIf="e.statut === 'RESULTAT_DISPONIBLE'" title="Télécharger PDF">
+                <i class="fa fa-file-pdf"></i>
               </button>
             </div>
           </div>
@@ -307,7 +312,8 @@ export class ExamensComponent implements OnInit {
     description: [''],
   });
 
-  constructor(private fb: FormBuilder, private api: ApiService, public auth: AuthService) {}
+  constructor(private fb: FormBuilder, private api: ApiService, public auth: AuthService, private pdf: PdfService) {}
+
 
   ngOnInit(): void {
     this.loadData();
@@ -363,6 +369,8 @@ export class ExamensComponent implements OnInit {
     if (!confirm('Supprimer cet examen ?')) return;
     this.api.deleteExamen(id).subscribe(() => this.loadData());
   }
+
+  exportPdf(e: any): void { this.pdf.ouvrir('examen', e.id); }
 
   isMedecin(): boolean { return this.auth.role() === 'MEDECIN'; }
   isAdmin():   boolean { return this.auth.role() === 'ADMIN'; }

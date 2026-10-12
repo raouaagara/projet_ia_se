@@ -1,15 +1,13 @@
 package com.clinique.gestion.service;
 
+import com.clinique.gestion.dto.ChatHistoryDto;
 import com.clinique.gestion.dto.ChatbotResponse;
 import com.clinique.gestion.dto.StatistiqueDto;
-import com.clinique.gestion.entity.Medecin;
-import com.clinique.gestion.entity.RendezVous;
-import com.clinique.gestion.entity.StatutRendezVous;
+import com.clinique.gestion.entity.*;
 import com.clinique.gestion.repository.*;
-import com.clinique.gestion.entity.StatutExamen;
-import com.clinique.gestion.entity.StatutPaiement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -24,14 +22,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChatbotService {
 
-    private final PatientRepository      patientRepository;
-    private final MedecinRepository      medecinRepository;
-    private final RendezVousRepository   rendezVousRepository;
-    private final ConsultationRepository consultationRepository;
-    private final UtilisateurRepository  utilisateurRepository;
-    private final OrdonnanceRepository   ordonnanceRepository;
-    private final FactureRepository      factureRepository;
+    private final PatientRepository           patientRepository;
+    private final MedecinRepository           medecinRepository;
+    private final RendezVousRepository        rendezVousRepository;
+    private final ConsultationRepository      consultationRepository;
+    private final UtilisateurRepository       utilisateurRepository;
+    private final OrdonnanceRepository        ordonnanceRepository;
+    private final FactureRepository           factureRepository;
     private final ExamenLaboratoireRepository examenRepository;
+    private final ChatMessageRepository       chatMessageRepository;
 
     @Value("${app.ai.api-url:}")  private String aiApiUrl;
     @Value("${app.ai.api-key:}")  private String aiApiKey;
@@ -40,24 +39,43 @@ public class ChatbotService {
     // ── POINT D'ENTRÉE PRINCIPAL ──────────────────────────────────────────
 
     public ChatbotResponse repondre(String message, String contexte, String role, String userName) {
-        // 1. Construire le contexte clinique dynamique
-        String cliniqueContext = buildCliniqueContext(role);
-
-        // 2. Construire le system prompt adapté au rôle
-        String systemPrompt = buildSystemPrompt(role, userName, cliniqueContext);
-
-        // 3. Appeler Groq
-        if (aiApiUrl != null && !aiApiUrl.isBlank() && aiApiKey != null && !aiApiKey.isBlank()) {
-            try {
-                return appelerGroq(message, systemPrompt);
-            } catch (Exception e) {
-                // Fallback sur les règles
-            }
-        }
-        return new ChatbotResponse(reponseRegles(message, role), "REGLES");
+        return repondre(message, contexte, role, userName, null, null);
     }
 
-    // Surcharge pour compatibilité avec l'ancien code
+    public ChatbotResponse repondre(String message, String contexte, String role, String userName,
+                                     Long utilisateurId, String sessionId) {
+        String cliniqueContext = buildCliniqueContext(role);
+        String systemPrompt    = buildSystemPrompt(role, userName, cliniqueContext);
+
+        // Résoudre l'utilisateur si fourni
+        Utilisateur utilisateur = null;
+        if (utilisateurId != null) {
+            utilisateur = utilisateurRepository.findById(utilisateurId).orElse(null);
+        }
+        String sid = (sessionId != null && !sessionId.isBlank()) ? sessionId : UUID.randomUUID().toString();
+
+        // Sauvegarder le message utilisateur
+        sauvegarderMessage(utilisateur, sid, "user", message, null);
+
+        // Appeler Groq ou fallback
+        ChatbotResponse response;
+        if (aiApiUrl != null && !aiApiUrl.isBlank() && aiApiKey != null && !aiApiKey.isBlank()) {
+            try {
+                response = appelerGroq(message, systemPrompt);
+            } catch (Exception e) {
+                response = new ChatbotResponse(reponseRegles(message, role), "REGLES");
+            }
+        } else {
+            response = new ChatbotResponse(reponseRegles(message, role), "REGLES");
+        }
+
+        // Sauvegarder la réponse bot
+        sauvegarderMessage(utilisateur, sid, "bot", response.getReponse(), response.getSource());
+
+        // Retourner le sessionId dans la réponse
+        response.setSessionId(sid);
+        return response;
+    }
     public ChatbotResponse repondre(String message, String contexte) {
         return repondre(message, contexte, "PATIENT", "");
     }
@@ -243,33 +261,74 @@ public class ChatbotService {
         if (message == null) return aide(role);
         String t = message.toLowerCase(Locale.FRENCH).trim();
 
-        if (t.matches("(bonjour|salut|hello|bonsoir|hey).*"))
-            return "Bonjour ! Je suis MediAssist, votre assistant clinique. Comment puis-je vous aider ?";
-        if (t.contains("stat") || t.contains("chiffre")) return statsResume();
-        if (t.contains("médecin") || t.contains("docteur")) return listeMedecins();
-        if (t.contains("rdv") || t.contains("rendez")) {
+        // Salutations
+        if (t.matches("(bonjour|salut|hello|bonsoir|hey|coucou).*"))
+            return "Bonjour ! Je suis MediAssist, votre assistant santé de la clinique MediCare. Comment puis-je vous aider ? Je peux vous renseigner sur nos services, nos médecins, ou vous expliquer comment prendre un rendez-vous.";
+
+        // Statistiques (uniquement pour admin)
+        if ((t.contains("stat") || t.contains("chiffre") || t.contains("bilan")) && "ADMIN".equalsIgnoreCase(role))
+            return statsResume();
+
+        // Médecins
+        if (t.contains("médecin") || t.contains("docteur") || t.contains("spécialiste"))
+            return listeMedecins();
+
+        // Prise de rendez-vous — réponse conversationnelle
+        if (t.contains("rdv") || t.contains("rendez") || t.contains("appointment") || t.contains("consulter") || t.contains("prendre")) {
             if ("MEDECIN".equalsIgnoreCase(role)) {
-                return "Vous avez actuellement "
-                    + rendezVousRepository.countByStatut(StatutRendezVous.PLANIFIE)
-                    + " rendez-vous planifiés et "
-                    + rendezVousRepository.countByStatut(StatutRendezVous.CONFIRME)
-                    + " confirmés dans le système.";
+                long planifies = rendezVousRepository.countByStatut(StatutRendezVous.PLANIFIE);
+                long confirmes = rendezVousRepository.countByStatut(StatutRendezVous.CONFIRME);
+                return "Vous avez actuellement " + planifies + " rendez-vous planifié" + (planifies > 1 ? "s" : "")
+                    + " et " + confirmes + " confirmé" + (confirmes > 1 ? "s" : "") + ". "
+                    + "Consultez votre planning dans l'onglet **Rendez-vous** pour voir les détails.";
             }
-            return rdvResume();
+            // Patient / visiteur : guide pratique
+            return "Pour prendre un rendez-vous à la clinique MediCare, voici les étapes :\n\n"
+                + "1️⃣ **Créez votre compte** sur notre site en cliquant sur « Prendre RDV »\n"
+                + "2️⃣ **Connectez-vous** à votre espace patient\n"
+                + "3️⃣ Rendez-vous dans **Mes rendez-vous** → **Nouveau rendez-vous**\n"
+                + "4️⃣ **Choisissez votre médecin**, la date et l'heure qui vous conviennent\n"
+                + "5️⃣ **Confirmez** — vous recevrez une notification de confirmation\n\n"
+                + "Nos créneaux sont disponibles du lundi au vendredi de 8h à 18h, et le samedi de 9h à 13h.\n"
+                + "Avez-vous besoin d'aide pour choisir le bon spécialiste ?";
         }
-        if (t.contains("horaire")) return "La clinique est ouverte Lun-Ven 08h-18h, Sam 09h-13h.";
-        if (t.contains("urgence")) return "En cas d'urgence vitale : composez le 15 (SAMU).";
-        if (t.contains("patient")) {
+
+        // Horaires
+        if (t.contains("horaire") || t.contains("ouvert") || t.contains("heure"))
+            return "La clinique MediCare est ouverte :\n• **Lundi - Vendredi** : 08h00 - 18h00\n• **Samedi** : 09h00 - 13h00\n• **Dimanche** : fermé\n\nPour les urgences, composez le **15 (SAMU)**.";
+
+        // Urgences
+        if (t.contains("urgence") || t.contains("samu") || t.contains("urgent"))
+            return "🚨 **En cas d'urgence vitale**, composez immédiatement le **15 (SAMU)**.\n\nPour une situation non vitale nécessitant une prise en charge rapide, notre clinique peut vous recevoir sans rendez-vous le matin dès 08h00.";
+
+        // Services
+        if (t.contains("service") || t.contains("soin") || t.contains("offre") || t.contains("propose"))
+            return "La clinique MediCare vous propose :\n\n🩺 **Consultations médicales** — médecine générale et spécialisée\n🔬 **Examens de laboratoire** — analyses biologiques complètes\n📋 **Ordonnances** — prescriptions médicales en ligne\n💊 **Suivi des traitements** — consultations de suivi\n🧾 **Facturation** — gestion de vos remboursements\n\nVous souhaitez prendre rendez-vous avec l'un de nos spécialistes ?";
+
+        // Contact
+        if (t.contains("contact") || t.contains("adresse") || t.contains("téléphone") || t.contains("email"))
+            return "Pour nous contacter :\n📞 Appelez directement la clinique\n💬 Utilisez ce chat pour toute question\n📅 Prenez rendez-vous en ligne via votre espace patient\n\nNos équipes sont disponibles du lundi au vendredi de 08h à 18h.";
+
+        // Patients — ne pas exposer les stats brutes au public
+        if (t.contains("patient") && "ADMIN".equalsIgnoreCase(role)) {
             long nb = patientRepository.count();
-            return "La clinique compte " + nb + " patient" + (nb > 1 ? "s" : "") + " enregistré" + (nb > 1 ? "s" : "") + ".";
+            return "La clinique compte actuellement " + nb + " patient" + (nb > 1 ? "s" : "") + " enregistré" + (nb > 1 ? "s" : "") + ".";
         }
+
         return aide(role);
     }
 
     private String aide(String role) {
         if ("MEDECIN".equals(role))
-            return "Je peux vous aider sur : vos rendez-vous, vos patients, informations médicales générales, rédaction de notes. Posez votre question !";
-        return "Je peux vous aider sur : statistiques, médecins disponibles, rendez-vous, horaires. Posez votre question !";
+            return "Je peux vous aider sur : vos rendez-vous, vos patients, les informations médicales générales, la rédaction de notes. Posez votre question !";
+        if ("ADMIN".equals(role))
+            return "Je peux vous aider sur : les statistiques, la gestion des médecins, des patients, des rendez-vous. Posez votre question !";
+        return "Je suis MediAssist, votre assistant santé. Je peux vous aider à :\n\n"
+            + "📅 **Prendre un rendez-vous** — dites-moi \"comment prendre un rendez-vous\"\n"
+            + "👨‍⚕️ **Trouver un médecin** — demandez \"quels sont vos médecins\"\n"
+            + "🕐 **Connaître nos horaires** — demandez \"quels sont vos horaires\"\n"
+            + "🏥 **Découvrir nos services** — demandez \"quels services proposez-vous\"\n\n"
+            + "Comment puis-je vous aider ?";
     }
 
     private String statsResume() {
@@ -342,5 +401,64 @@ public class ChatbotService {
             .rendezVousAnnules(0).rendezVousTermines(0)
             .utilisateurs(0).tauxConfirmation(0).tauxAnnulation(0)
             .build();
+    }
+
+    // ── HISTORIQUE CHATBOT ────────────────────────────────────────────────
+
+    private void sauvegarderMessage(Utilisateur utilisateur, String sessionId,
+                                     String role, String contenu, String source) {
+        try {
+            ChatMessage msg = ChatMessage.builder()
+                .utilisateur(utilisateur)
+                .sessionId(sessionId)
+                .role(role)
+                .contenu(contenu)
+                .source(source)
+                .dateMessage(LocalDateTime.now())
+                .build();
+            chatMessageRepository.save(msg);
+        } catch (Exception ignored) {
+            // Ne jamais bloquer le chatbot à cause de l'historique
+        }
+    }
+
+    /** Sessions d'un utilisateur avec aperçu */
+    public List<ChatHistoryDto> getSessionsUtilisateur(Long utilisateurId) {
+        List<String> sessions = chatMessageRepository.findSessionsByUtilisateurId(utilisateurId);
+        return sessions.stream().map(sid -> {
+            List<ChatMessage> msgs = chatMessageRepository
+                .findBySessionIdOrderByDateMessageAsc(sid);
+            List<ChatHistoryDto.ChatMessageDto> dtos = msgs.stream()
+                .map(m -> ChatHistoryDto.ChatMessageDto.builder()
+                    .id(m.getId()).role(m.getRole()).contenu(m.getContenu())
+                    .source(m.getSource()).dateMessage(m.getDateMessage())
+                    .build())
+                .collect(Collectors.toList());
+            return ChatHistoryDto.builder()
+                .sessionId(sid)
+                .dateDebut(msgs.isEmpty() ? null : msgs.get(0).getDateMessage())
+                .dateFin(msgs.isEmpty()   ? null : msgs.get(msgs.size()-1).getDateMessage())
+                .nbMessages(msgs.size())
+                .messages(dtos)
+                .build();
+        }).collect(Collectors.toList());
+    }
+
+    /** Messages d'une session précise */
+    public List<ChatHistoryDto.ChatMessageDto> getSession(String sessionId) {
+        return chatMessageRepository.findBySessionIdOrderByDateMessageAsc(sessionId)
+            .stream()
+            .map(m -> ChatHistoryDto.ChatMessageDto.builder()
+                .id(m.getId()).role(m.getRole()).contenu(m.getContenu())
+                .source(m.getSource()).dateMessage(m.getDateMessage())
+                .build())
+            .collect(Collectors.toList());
+    }
+
+    /** Supprimer l'historique d'un utilisateur */
+    public void supprimerHistorique(Long utilisateurId) {
+        List<ChatMessage> msgs = chatMessageRepository
+            .findByUtilisateurIdOrderByDateMessageDesc(utilisateurId);
+        chatMessageRepository.deleteAll(msgs);
     }
 }

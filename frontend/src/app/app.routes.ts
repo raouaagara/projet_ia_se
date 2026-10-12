@@ -24,6 +24,7 @@ import { DashboardComponent } from './pages/back/dashboard.component';
 import { PatientsComponent } from './pages/back/patients.component';
 import { MedecinsComponent } from './pages/back/medecins.component';
 import { PlanningsComponent } from './pages/back/plannings.component';
+import { CalendarComponent } from './pages/back/calendar.component';
 import { RendezVousBackComponent } from './pages/back/rendez-vous-back.component';
 import { StatistiquesComponent } from './pages/back/statistiques.component';
 import { StatistiquesDetailComponent } from './pages/back/statistiques-detail.component';
@@ -51,7 +52,7 @@ export const routes: Routes = [
       { path: 'dashboard',       component: DashboardComponent },
       { path: 'patients',        component: PatientsComponent },
       { path: 'rendez-vous',     component: RendezVousBackComponent },
-      { path: 'plannings',       component: PlanningsComponent },
+      { path: 'plannings',       component: CalendarComponent },
       { path: 'consultations',   component: ConsultationsComponent },
       { path: 'factures',        component: FacturesComponent },
       { path: 'notifications',   component: NotificationsComponent },
@@ -102,7 +103,7 @@ export const routes: Routes = [
       { path: 'patients',        component: PatientsComponent },
       { path: 'medecins',        component: MedecinsComponent,
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-      { path: 'plannings',       component: PlanningsComponent },
+      { path: 'plannings',       component: CalendarComponent },
       { path: 'rendez-vous',     component: RendezVousBackComponent },
       { path: 'consultations',   component: ConsultationsComponent },
       { path: 'examens',         component: ExamensComponent },

@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf, DecimalPipe, DatePipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { PdfService } from '../../core/pdf.service';
 
 @Component({
   selector: 'app-factures',
@@ -313,7 +314,7 @@ export class FacturesComponent implements OnInit {
     notes:        ['']
   });
 
-  constructor(private fb: FormBuilder, private api: ApiService, public auth: AuthService) {}
+  constructor(private fb: FormBuilder, private api: ApiService, public auth: AuthService, private pdf: PdfService) {}
 
   ngOnInit(): void {
     this.load();
@@ -361,26 +362,7 @@ export class FacturesComponent implements OnInit {
   }
 
   exportPdf(f: any): void {
-    const content = `
-FACTURE N° ${f.numeroFacture}
-Date : ${f.dateFacture}
-Patient : ${f.patientNom}
-Médecin : ${f.medecinNom || 'N/A'}
-──────────────────────────────
-Montant total : ${f.montantTotal} €
-Montant payé  : ${f.montantPaye} €
-Statut        : ${this.statutLabel(f.statut)}
-──────────────────────────────
-Notes : ${f.notes || 'Aucune'}
-    `.trim();
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url;
-    a.download = `facture-${f.numeroFacture}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    this.pdf.ouvrir('facture', f.id);
   }
 
   filtered(): any[] {

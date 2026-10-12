@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor } from '@angular/common';
 import { ApiService } from '../../core/api.service';
+import { PdfService } from '../../core/pdf.service';
 
 @Component({
   selector: 'app-ordonnances',
@@ -34,6 +35,9 @@ import { ApiService } from '../../core/api.service';
             <td>{{ o.medicaments }}</td>
             <td>
               <button class="btn ghost" (click)="edit(o)">Éditer</button>
+              <button class="btn" title="PDF" (click)="exportPdf(o)" style="background:#ef4444;color:#fff;margin-left:4px">
+                <i class="fa fa-file-pdf"></i>
+              </button>
               <button class="btn danger" (click)="remove(o.id)">Suppr.</button>
             </td>
           </tr>
@@ -54,7 +58,7 @@ export class OrdonnancesComponent implements OnInit {
     instructions: ['']
   });
 
-  constructor(private fb: FormBuilder, private api: ApiService) {}
+  constructor(private fb: FormBuilder, private api: ApiService, private pdf: PdfService) {}
   ngOnInit(): void {
     this.api.consultations().subscribe((c) => this.consultations = c);
     this.load();
@@ -66,4 +70,5 @@ export class OrdonnancesComponent implements OnInit {
   }
   edit(o: any): void { this.editingId = o.id; this.form.patchValue(o); }
   remove(id: number): void { this.api.deleteOrdonnance(id).subscribe(() => this.load()); }
+  exportPdf(o: any): void { this.pdf.ouvrir('ordonnance', o.id); }
 }

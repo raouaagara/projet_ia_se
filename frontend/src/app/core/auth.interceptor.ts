@@ -22,7 +22,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 || err.status === 403) {
+      // Ne pas rediriger si c'est un appel externe (Groq, CDN...)
+      // ou un appel chatbot/stats — géré silencieusement
+      const isExternal = !req.url.includes('localhost');
+      const isChatbotOrStats = req.url.includes('/chatbot') || req.url.includes('/statistiques');
+
+      if ((err.status === 401 || err.status === 403) && !isExternal && !isChatbotOrStats) {
         localStorage.removeItem('clinique_token');
         localStorage.removeItem('clinique_auth');
         const router = inject(Router);
