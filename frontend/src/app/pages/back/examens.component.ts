@@ -1,3 +1,4 @@
+import { IaAnalyseComponent } from '../../shared/ia-analyse.component';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf, DatePipe, SlicePipe } from '@angular/common';
@@ -10,7 +11,7 @@ import { catchError } from 'rxjs/operators';
 @Component({
   selector: 'app-examens',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, NgFor, NgIf, DatePipe, SlicePipe],
+  imports: [ReactiveFormsModule, FormsModule, NgFor, NgIf, DatePipe, SlicePipe, IaAnalyseComponent],
   template: `
     <div class="ex-page">
 
@@ -123,6 +124,11 @@ import { catchError } from 'rxjs/operators';
           <div class="ex-card-right">
             <span class="ex-badge" [class]="badgeClass(e.statut)">{{ statutLabel(e.statut) }}</span>
             <div class="ex-card-actions">
+              <button class="ex-act-btn" (click)="interpretation = e"
+                *ngIf="e.statut==='RESULTAT_DISPONIBLE' && e.resultatTexte && (isMedecin() || isAdmin())"
+                title="Aide à l'interprétation (IA)">
+                <i class="fa fa-wand-magic-sparkles"></i>
+              </button>
               <button class="ex-act-btn" (click)="openResultat(e)"
                 *ngIf="e.statut!=='RESULTAT_DISPONIBLE' && (isMedecin() || isAdmin())"
                 title="Saisir résultat">
@@ -138,6 +144,9 @@ import { catchError } from 'rxjs/operators';
       </div>
 
     </div>
+
+    <app-ia-analyse *ngIf="interpretation" mode="interpretation" [cibleId]="interpretation.id"
+      [titre]="interpretation.typeExamen + ' — ' + interpretation.patientNom" (fermer)="interpretation = undefined"></app-ia-analyse>
   `,
   styles: [`
     .ex-page { display:flex; flex-direction:column; gap:20px; }
@@ -282,6 +291,8 @@ import { catchError } from 'rxjs/operators';
   `]
 })
 export class ExamensComponent implements OnInit {
+  /** Examen dont l'aide à l'interprétation IA est affichée. */
+  interpretation?: any;
   examens: any[] = [];
   patients: any[] = [];
   loading = false;

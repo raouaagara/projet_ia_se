@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { AuthService } from '../core/auth.service';
@@ -17,7 +17,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
         <div class="ll-nav-inner">
 
           <a class="ll-brand" routerLink="/labo">
-            <span class="brand-chip ll-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+            <span class="brand-chip ll-chip"><img class="brand-logo" src="assets/logo.png" alt="MediCare"></span>
             <span class="brand-caption ll-brand-sub">Espace Laboratoire</span>
           </a>
 
@@ -178,15 +178,20 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     }
   `]
 })
-export class LaboLayoutComponent implements OnInit {
+export class LaboLayoutComponent implements OnInit, OnDestroy {
   m = false;
   notifCount = 0;
+  private timer?: ReturnType<typeof setInterval>;
 
   constructor(public auth: AuthService, private api: ApiService) {}
 
   ngOnInit(): void {
     this.loadCount();
-    setInterval(() => this.loadCount(), 30000);
+    this.timer = setInterval(() => this.loadCount(), 30000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.timer) clearInterval(this.timer);
   }
 
   private loadCount(): void {

@@ -25,9 +25,16 @@ public class UtilisateurController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
-    public UtilisateurDto findById(@PathVariable Long id) {
-        return service.findById(id);
+    @PreAuthorize("isAuthenticated()")
+    public UtilisateurDto findById(@PathVariable Long id,
+                                   @org.springframework.security.core.annotation.AuthenticationPrincipal
+                                   org.springframework.security.core.userdetails.UserDetails principal) {
+        UtilisateurDto u = service.findById(id);
+        boolean admin = principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (!admin && !u.getEmail().equalsIgnoreCase(principal.getUsername())) {
+            throw new org.springframework.security.access.AccessDeniedException("Profil d'un autre utilisateur");
+        }
+        return u;
     }
 
     @PostMapping
@@ -37,7 +44,7 @@ public class UtilisateurController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
+    @PreAuthorize("isAuthenticated()")
     public UtilisateurDto update(@PathVariable Long id, @Valid @RequestBody UtilisateurDto dto,
                                   @org.springframework.security.core.annotation.AuthenticationPrincipal
                                   org.springframework.security.core.userdetails.UserDetails principal) {

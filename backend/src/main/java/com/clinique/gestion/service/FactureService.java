@@ -22,17 +22,24 @@ public class FactureService {
     private final MedecinRepository medecinRepository;
     private final ConsultationRepository consultationRepository;
     private final NotificationService notificationService;
+    private final com.clinique.gestion.security.UtilisateurCourant utilisateurCourant;
 
+    @Transactional(readOnly = true)
     public List<FactureDto> findAll() {
         return factureRepository.findAllOrderByDateCreationDesc().stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<FactureDto> findByPatient(Long patientId) {
+        utilisateurCourant.verifierAccesPatient(patientId);
         return factureRepository.findByPatientIdOrderByDateFactureDesc(patientId).stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public FactureDto findById(Long id) {
-        return toDto(get(id));
+        Facture f = get(id);
+        utilisateurCourant.verifierAccesPatient(f.getPatient().getId());
+        return toDto(f);
     }
 
     @Transactional
@@ -80,7 +87,7 @@ public class FactureService {
             notificationService.creer(
                 patient.getUtilisateur().getId(),
                 "Nouvelle facture",
-                "Une facture de " + saved.getMontantTotal() + " DA a été générée. N° " + saved.getNumeroFacture(),
+                "Une facture de " + com.clinique.gestion.config.Devise.formater(saved.getMontantTotal()) + " a été générée (n° " + saved.getNumeroFacture() + ").",
                 TypeNotification.FACTURE_GENEREE,
                 saved.getId(), "FACTURE"
             );
@@ -107,10 +114,12 @@ public class FactureService {
         return toDto(factureRepository.save(f));
     }
 
+    @Transactional
     public void delete(Long id) {
         factureRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     public Object stats() {
         BigDecimal revenusTotal = factureRepository.sumRevenusTotal();
         long impayees = factureRepository.countByStatut(StatutPaiement.EN_ATTENTE);
@@ -125,8 +134,14 @@ public class FactureService {
 
     private String genererNumero() {
         String annee = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy"));
-        long count = factureRepository.count() + 1;
-        return String.format("FAC-%s-%04d", annee, count);
+        long sequence = factureRepository.count() + 1;
+        String numero = String.format("FAC-%s-%04d", annee, sequence);
+        // La numérotation reste unique même après la suppression d'une facture.
+        while (factureRepository.findByNumeroFacture(numero).isPresent()) {
+            sequence++;
+            numero = String.format("FAC-%s-%04d", annee, sequence);
+        }
+        return numero;
     }
 
     private Facture get(Long id) {

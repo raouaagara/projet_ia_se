@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NgFor, NgIf } from '@angular/common';
+import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { IaAnalyseComponent } from '../../shared/ia-analyse.component';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { catchError, of } from 'rxjs';
@@ -8,7 +9,7 @@ import { catchError, of } from 'rxjs';
 @Component({
   selector: 'app-patients',
   standalone: true,
-  imports: [ReactiveFormsModule, NgFor, NgIf],
+  imports: [ReactiveFormsModule, NgFor, NgIf, DatePipe, IaAnalyseComponent],
   template: `
     <div class="page-header">
       <div class="page-header-info">
@@ -101,7 +102,7 @@ import { catchError, of } from 'rxjs';
               <th>Date naiss.</th>
               <th>Téléphone</th>
               <th>Groupe</th>
-              <th *ngIf="!isMedecin" style="text-align:right">Actions</th>
+              <th style="text-align:right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -112,24 +113,29 @@ import { catchError, of } from 'rxjs';
                   <div class="avatar avatar-sm">{{ p.prenom?.charAt(0) }}{{ p.nom?.charAt(0) }}</div>
                   <div>
                     <div style="font-weight:600">{{ p.prenom }} {{ p.nom }}</div>
-                    <div style="font-size:12px;color:var(--text-muted)">{{ p.sexe === 'F' ? 'Féminin' : 'Masculin' }}</div>
+                    <div style="font-size:12px;color:var(--text-muted)">{{ p.sexe === 'F' ? 'Féminin' : p.sexe === 'M' ? 'Masculin' : 'Sexe non renseigné' }}</div>
                   </div>
                 </div>
               </td>
-              <td>{{ p.dateNaissance || '—' }}</td>
+              <td>{{ p.dateNaissance ? (p.dateNaissance | date:'dd/MM/yyyy') : '—' }}</td>
               <td>{{ p.telephone || '—' }}</td>
               <td>{{ p.groupeSanguin || '—' }}</td>
-              <td *ngIf="!isMedecin" style="text-align:right">
-                <button class="btn btn-ghost btn-sm" (click)="edit(p)" style="margin-right:6px">
-                  <i class="fa fa-pen"></i>
+              <td style="text-align:right;white-space:nowrap">
+                <button class="btn btn-ghost btn-sm" *ngIf="peutResumer" (click)="resume = p" title="Résumé IA du dossier" style="margin-right:6px">
+                  <i class="fa fa-wand-magic-sparkles"></i> Résumé IA
                 </button>
-                <button class="btn btn-danger btn-sm" (click)="remove(p.id)">
-                  <i class="fa fa-trash"></i>
-                </button>
+                <ng-container *ngIf="!isMedecin">
+                  <button class="btn btn-ghost btn-sm" (click)="edit(p)" style="margin-right:6px" title="Modifier">
+                    <i class="fa fa-pen"></i>
+                  </button>
+                  <button class="btn btn-danger btn-sm" (click)="remove(p.id)" title="Supprimer">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </ng-container>
               </td>
             </tr>
             <tr *ngIf="items.length === 0">
-              <td [attr.colspan]="isMedecin ? 5 : 6">
+              <td colspan="6">
                 <div class="empty-state">
                   <i class="fa fa-users"></i>
                   <p>{{ isMedecin ? 'Aucun patient associé à vos rendez-vous' : 'Aucun patient enregistré' }}</p>
@@ -140,10 +146,15 @@ import { catchError, of } from 'rxjs';
         </table>
       </div>
     </div>
+
+    <app-ia-analyse *ngIf="resume" mode="resume" [cibleId]="resume.id" [titre]="resume.prenom + ' ' + resume.nom" (fermer)="resume = undefined"></app-ia-analyse>
   `
 })
 export class PatientsComponent implements OnInit {
   items: any[] = [];
+  /** Patient dont le résumé IA est affiché (médecin et administrateur). */
+  resume?: any;
+  peutResumer = false;
   editingId?: number;
   showForm = false;
   isMedecin = false;
@@ -165,6 +176,7 @@ export class PatientsComponent implements OnInit {
 
   ngOnInit(): void {
     this.isMedecin = this.auth.role() === 'MEDECIN';
+    this.peutResumer = this.isMedecin || this.auth.role() === 'ADMIN';
     if (this.isMedecin) {
       const uid = this.auth.current()?.id;
       if (!uid) return;

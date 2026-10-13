@@ -1,18 +1,18 @@
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, NgIf],
+  imports: [ReactiveFormsModule, RouterLink, NgIf, NgFor],
   template: `
     <div class="auth-split">
       <!-- ── Formulaire ── -->
       <section class="auth-form-side">
-        <a routerLink="/" class="auth-brand"><img src="assets/logo.png" alt="Medicare"></a>
+        <a routerLink="/" class="auth-brand"><img src="assets/logo.png" alt="MediCare"></a>
 
         <div class="auth-form-wrap">
           <span class="auth-eyebrow">Espace sécurisé</span>
@@ -45,11 +45,13 @@ import { AuthService } from '../../core/auth.service';
             </button>
           </form>
 
-          <div class="auth-divider">Accès de test</div>
-          <div class="auth-demo">
-            <strong>Admin :</strong> admin&#64;clinique.local / password<br>
-            <strong>Patient :</strong> créez un compte ci-dessous
+          <div class="auth-divider">Comptes de démonstration</div>
+          <div class="auth-demo-grid">
+            <button type="button" class="auth-demo-chip" *ngFor="let d of comptesDemo" (click)="remplir(d.email)" [title]="d.email">
+              <i [class]="d.icone"></i> {{ d.libelle }}
+            </button>
           </div>
+          <p class="auth-demo-note">Cliquez sur un rôle pour remplir le formulaire (mot de passe : <code>password</code>).</p>
 
           <div class="auth-footer">
             Pas encore de compte ?
@@ -57,7 +59,7 @@ import { AuthService } from '../../core/auth.service';
           </div>
         </div>
 
-        <div class="auth-legal">© 2026 Medicare — Clinique Médicale</div>
+        <div class="auth-legal">© 2026 MediCare — Clinique Médicale</div>
       </section>
 
       <!-- ── Visuel ── -->
@@ -86,11 +88,25 @@ export class LoginComponent {
   loading = false;
   showPwd = false;
   form = this.fb.group({
-    email: ['admin@clinique.local', [Validators.required, Validators.email]],
-    motDePasse: ['password', Validators.required]
+    email: ['', [Validators.required, Validators.email]],
+    motDePasse: ['', Validators.required]
   });
 
+  readonly comptesDemo = [
+    { libelle: 'Administrateur', email: 'admin@clinique.local', icone: 'fa fa-shield-halved' },
+    { libelle: 'Médecin',        email: 'dr.martin@clinique.local', icone: 'fa fa-user-doctor' },
+    { libelle: 'Secrétaire',     email: 'secretaire@clinique.local', icone: 'fa fa-briefcase' },
+    { libelle: 'Patient',        email: 'patient.dupont@clinique.local', icone: 'fa fa-user' },
+    { libelle: 'Laboratoire',    email: 'labo@clinique.local', icone: 'fa fa-flask' },
+    { libelle: 'Pharmacien',     email: 'pharmacien@clinique.local', icone: 'fa fa-prescription-bottle-medical' },
+  ];
+
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {}
+
+  remplir(email: string): void {
+    this.form.setValue({ email, motDePasse: 'password' });
+    this.error = '';
+  }
 
   submit(): void {
     if (this.form.invalid) return;

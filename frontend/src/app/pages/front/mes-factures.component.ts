@@ -1,3 +1,4 @@
+import { MontantPipe, formatMontant } from '../../shared/montant.pipe';
 import { Component, OnInit } from '@angular/core';
 import { NgFor, NgIf, DecimalPipe, DatePipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
@@ -7,7 +8,7 @@ import { catchError, of } from 'rxjs';
 @Component({
   selector: 'app-mes-factures',
   standalone: true,
-  imports: [NgFor, NgIf, DecimalPipe, DatePipe],
+  imports: [MontantPipe, NgFor, NgIf, DecimalPipe, DatePipe],
   template: `
     <div class="mf-page">
 
@@ -18,11 +19,11 @@ import { catchError, of } from 'rxjs';
         </div>
         <div class="mf-summary" *ngIf="items.length > 0">
           <div class="mf-sum-box">
-            <span class="mf-sum-v">{{ totalPaye() | number:'1.0-0' }} €</span>
+            <span class="mf-sum-v">{{ totalPaye() | montant:0 }}</span>
             <span class="mf-sum-l">Total payé</span>
           </div>
           <div class="mf-sum-box">
-            <span class="mf-sum-v">{{ totalDu() | number:'1.0-0' }} €</span>
+            <span class="mf-sum-v">{{ totalDu() | montant:0 }}</span>
             <span class="mf-sum-l">En attente</span>
           </div>
         </div>
@@ -58,15 +59,15 @@ import { catchError, of } from 'rxjs';
             <div class="mf-amounts">
               <div class="mf-amount-row">
                 <span class="mf-amount-l">Montant total</span>
-                <span class="mf-amount-v">{{ f.montantTotal | number:'1.2-2' }} €</span>
+                <span class="mf-amount-v">{{ f.montantTotal | montant }}</span>
               </div>
               <div class="mf-amount-row">
                 <span class="mf-amount-l">Montant payé</span>
-                <span class="mf-amount-v paid">{{ f.montantPaye | number:'1.2-2' }} €</span>
+                <span class="mf-amount-v paid">{{ f.montantPaye | montant }}</span>
               </div>
               <div class="mf-amount-row" *ngIf="f.montantTotal - f.montantPaye > 0">
                 <span class="mf-amount-l">Reste à payer</span>
-                <span class="mf-amount-v due">{{ (f.montantTotal - f.montantPaye) | number:'1.2-2' }} €</span>
+                <span class="mf-amount-v due">{{ (f.montantTotal - f.montantPaye) | montant }}</span>
               </div>
             </div>
             <div class="mf-notes" *ngIf="f.notes">
@@ -174,7 +175,7 @@ export class MesFacturesComponent implements OnInit {
   totalDu():   number { return this.items.filter(f => f.statut === 'EN_ATTENTE').reduce((s,f) => s + (f.montantTotal - f.montantPaye), 0); }
 
   exportPdf(f: any): void {
-    const txt = `FACTURE N° ${f.numeroFacture}\nDate : ${f.dateFacture}\nMédecin : ${f.medecinNom||'N/A'}\nTotal : ${f.montantTotal} €\nPayé : ${f.montantPaye} €\nStatut : ${this.statutLabel(f.statut)}`;
+    const txt = `FACTURE N° ${f.numeroFacture}\nDate : ${f.dateFacture}\nMédecin : ${f.medecinNom||'N/A'}\nTotal : ${formatMontant(f.montantTotal)}\nPayé : ${formatMontant(f.montantPaye)}\nStatut : ${this.statutLabel(f.statut)}`;
     const blob = new Blob([txt], { type: 'text/plain' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = `facture-${f.numeroFacture}.txt`; a.click();

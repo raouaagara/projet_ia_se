@@ -2,6 +2,8 @@ package com.clinique.gestion.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,6 +35,7 @@ public class ExamenLaboratoire {
     private String description;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 30)
     private StatutExamen statut;
 
@@ -42,6 +45,7 @@ public class ExamenLaboratoire {
     private LocalDate dateResultat;
 
     @Lob
+    @Column(length = 65535)
     private String resultatTexte;
 
     @Column(length = 500)

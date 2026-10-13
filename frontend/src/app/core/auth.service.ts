@@ -10,7 +10,7 @@ export interface AuthUser {
   email: string;
   nom: string;
   prenom: string;
-  role: 'ADMIN' | 'MEDECIN' | 'SECRETAIRE' | 'PATIENT';
+  role: 'ADMIN' | 'MEDECIN' | 'SECRETAIRE' | 'PATIENT' | 'LABO' | 'PHARMACIEN';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -68,6 +68,7 @@ export class AuthService {
   homeForRole(): string {
     if (this.role() === 'PATIENT') return '/front';
     if (this.role() === 'LABO')    return '/labo';
+    if (this.role() === 'PHARMACIEN') return '/pharmacie';
     if (this.role() === 'SECRETAIRE') return '/secretaire';
     return '/back';
   }

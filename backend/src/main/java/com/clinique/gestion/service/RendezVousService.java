@@ -51,7 +51,7 @@ public class RendezVousService {
             try {
                 notificationService.creer(
                     saved.getMedecin().getUtilisateur().getId(),
-                    "🗓️ Nouveau rendez-vous",
+                    "Nouveau rendez-vous",
                     "Le patient " + patientNom + " a pris un rendez-vous le " + dateStr
                         + (saved.getMotif() != null && !saved.getMotif().isBlank()
                            ? " — Motif : " + saved.getMotif() : ""),
@@ -67,7 +67,7 @@ public class RendezVousService {
             try {
                 notificationService.creer(
                     saved.getPatient().getUtilisateur().getId(),
-                    "📅 Rendez-vous enregistré",
+                    "Rendez-vous enregistré",
                     "Votre rendez-vous avec " + medecinNom + " est planifié pour le " + dateStr + ". En attente de confirmation.",
                     TypeNotification.RDV_CONFIRME, saved.getId(), "RDV"
                 );
@@ -85,6 +85,9 @@ public class RendezVousService {
 
         existing.setPatient(patient(dto.getPatientId()));
         existing.setMedecin(medecin(dto.getMedecinId()));
+        if (dto.getDateHeure() != null && !dto.getDateHeure().equals(existing.getDateHeure())) {
+            existing.setRappelEnvoye(false); // nouvelle date : un nouveau rappel devra être envoyé
+        }
         existing.setDateHeure(dto.getDateHeure());
         existing.setMotif(dto.getMotif());
         existing.setStatut(dto.getStatut() == null ? existing.getStatut() : dto.getStatut());
@@ -100,14 +103,14 @@ public class RendezVousService {
         if (ancienStatut != StatutRendezVous.CONFIRME && nouveauStatut == StatutRendezVous.CONFIRME) {
             if (saved.getPatient().getUtilisateur() != null) {
                 try { notificationService.creer(saved.getPatient().getUtilisateur().getId(),
-                    "🎉 Rendez-vous confirmé",
+                    "Rendez-vous confirmé",
                     medecinNom + " a confirmé votre rendez-vous du " + dateStr + ".",
                     TypeNotification.RDV_CONFIRME, saved.getId(), "RDV");
                 } catch (Exception ignored) {}
             }
             if (saved.getMedecin().getUtilisateur() != null) {
                 try { notificationService.creer(saved.getMedecin().getUtilisateur().getId(),
-                    "✅ RDV confirmé",
+                    "Rendez-vous confirmé",
                     "Vous avez confirmé le rendez-vous avec " + patientNom + " pour le " + dateStr + ".",
                     TypeNotification.RDV_CONFIRME, saved.getId(), "RDV");
                 } catch (Exception ignored) {}
@@ -118,14 +121,14 @@ public class RendezVousService {
         if (ancienStatut != StatutRendezVous.ANNULE && nouveauStatut == StatutRendezVous.ANNULE) {
             if (saved.getPatient().getUtilisateur() != null) {
                 try { notificationService.creer(saved.getPatient().getUtilisateur().getId(),
-                    "❌ Rendez-vous annulé",
+                    "Rendez-vous annulé",
                     "Votre rendez-vous avec " + medecinNom + " du " + dateStr + " a été annulé.",
                     TypeNotification.RDV_ANNULE, saved.getId(), "RDV");
                 } catch (Exception ignored) {}
             }
             if (saved.getMedecin().getUtilisateur() != null) {
                 try { notificationService.creer(saved.getMedecin().getUtilisateur().getId(),
-                    "❌ RDV annulé",
+                    "Rendez-vous annulé",
                     "Le rendez-vous avec " + patientNom + " du " + dateStr + " a été annulé.",
                     TypeNotification.RDV_ANNULE, saved.getId(), "RDV");
                 } catch (Exception ignored) {}

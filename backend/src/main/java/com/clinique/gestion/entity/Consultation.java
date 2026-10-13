@@ -37,6 +37,7 @@ public class Consultation {
     private String diagnostic;
 
     @Lob
+    @Column(length = 65535)
     private String observations;
 
     @Column(length = 255)

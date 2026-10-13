@@ -34,6 +34,7 @@ import { FacturesComponent } from './pages/back/factures.component';
 import { ExamensComponent } from './pages/back/examens.component';
 import { LaboratoireComponent } from './pages/back/laboratoire.component';
 import { NotificationsComponent } from './pages/back/notifications.component';
+import { OrdonnancesComponent } from './pages/back/ordonnances.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -70,6 +71,8 @@ export const routes: Routes = [
       { path: 'rdv',       component: RendezVousFrontComponent },
       { path: 'dossier',   component: DossierComponent },
       { path: 'historique',component: HistoriqueComponent },
+      { path: 'triage',        title: 'Pré-diagnostic IA',
+        loadComponent: () => import('./pages/front/triage.component').then(m => m.TriageComponent) },
       { path: 'examens',       component: MesExamensComponent },
       { path: 'factures',      component: MesFacturesComponent },
       { path: 'notifications', component: MesNotificationsComponent }
@@ -90,6 +93,14 @@ export const routes: Routes = [
     ]
   },
 
+  // ── Espace Pharmacie (module M6) ──────────────────────────────────────────
+  {
+    path: 'pharmacie',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['PHARMACIEN', 'ADMIN'] },
+    loadChildren: () => import('./pages/pharmacie/pharmacie.routes').then(m => m.PHARMACIE_ROUTES)
+  },
+
   // ── Back-office ADMIN / MÉDECIN ───────────────────────────────────────────
   {
     path: 'back',
@@ -106,6 +117,7 @@ export const routes: Routes = [
       { path: 'rendez-vous',     component: RendezVousBackComponent },
       { path: 'consultations',   component: ConsultationsComponent },
       { path: 'examens',         component: ExamensComponent },
+      { path: 'ordonnances',     component: OrdonnancesComponent },
       { path: 'laboratoire',     component: LaboratoireComponent },
       { path: 'factures',        component: FacturesComponent,
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
@@ -113,6 +125,8 @@ export const routes: Routes = [
       { path: 'statistiques',    component: StatistiquesComponent,
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
       { path: 'statistiques-detail', component: StatistiquesDetailComponent,
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
+      { path: 'ia',              loadComponent: () => import('./pages/back/ia-admin.component').then(m => m.IaAdminComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
       { path: 'utilisateurs',    component: UtilisateursComponent,
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },

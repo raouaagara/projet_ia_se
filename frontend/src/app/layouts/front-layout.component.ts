@@ -30,7 +30,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
       <header class="pt-nav">
         <div class="pt-nav-inner">
           <a class="pt-brand" routerLink="/">
-            <img class="brand-logo" src="assets/logo.png" alt="Medicare">
+            <img class="brand-logo" src="assets/logo.png" alt="MediCare">
             <span class="brand-caption pt-brand-sub">Espace Patient</span>
           </a>
 
@@ -39,16 +39,19 @@ import { ChatbotComponent } from '../shared/chatbot.component';
               <i class="fa fa-calendar-plus"></i><span>Rendez-vous</span>
             </a>
             <a routerLink="/front/dossier"    routerLinkActive="pt-active" class="pt-tab">
-              <i class="fa fa-folder-open"></i><span>Mon dossier</span>
+              <i class="fa fa-folder-open"></i><span>Dossier</span>
             </a>
             <a routerLink="/front/historique" routerLinkActive="pt-active" class="pt-tab">
               <i class="fa fa-clock-rotate-left"></i><span>Historique</span>
             </a>
+            <a routerLink="/front/triage"     routerLinkActive="pt-active" class="pt-tab">
+              <i class="fa fa-stethoscope"></i><span>Pré-diagnostic</span>
+            </a>
             <a routerLink="/front/examens"    routerLinkActive="pt-active" class="pt-tab">
-              <i class="fa fa-flask"></i><span>Mes examens</span>
+              <i class="fa fa-flask"></i><span>Examens</span>
             </a>
             <a routerLink="/front/factures"   routerLinkActive="pt-active" class="pt-tab">
-              <i class="fa fa-file-invoice"></i><span>Mes factures</span>
+              <i class="fa fa-file-invoice"></i><span>Factures</span>
             </a>
           </nav>
 
@@ -77,6 +80,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
           <a routerLink="/front/rdv"           (click)="m=false"><i class="fa fa-calendar-plus"></i> Rendez-vous</a>
           <a routerLink="/front/dossier"       (click)="m=false"><i class="fa fa-folder-open"></i> Mon dossier</a>
           <a routerLink="/front/historique"    (click)="m=false"><i class="fa fa-clock-rotate-left"></i> Historique</a>
+          <a routerLink="/front/triage"        (click)="m=false"><i class="fa fa-stethoscope"></i> Pré-diagnostic IA</a>
           <a routerLink="/front/examens"       (click)="m=false"><i class="fa fa-flask"></i> Mes examens</a>
           <a routerLink="/front/factures"      (click)="m=false"><i class="fa fa-file-invoice"></i> Mes factures</a>
           <a routerLink="/front/notifications" (click)="m=false">
@@ -95,7 +99,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
         </div>
         <div class="pt-hero-inner">
           <div class="pt-hero-left">
-            <div class="pt-hero-greeting">{{ greeting() }}, <strong>{{ auth.current()?.prenom }}</strong> 👋</div>
+            <div class="pt-hero-greeting">{{ greeting() }}, <strong>{{ auth.current()?.prenom }}</strong></div>
             <div class="pt-hero-sub">Gérez votre santé en toute simplicité</div>
           </div>
           <div class="pt-hero-pills">
@@ -164,9 +168,10 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     .pt-tabs::-webkit-scrollbar { display:none; }
     .pt-tab {
       display:flex; align-items:center; gap:7px;
-      padding:8px 14px; border-radius:9px; font-size:13.5px; font-weight:600;
+      padding:8px 12px; border-radius:9px; font-size:13.5px; font-weight:600;
       color:#64748b; text-decoration:none; white-space:nowrap; transition:all .18s;
     }
+    @media (max-width: 1500px) { .pt-brand-sub { display:none; } }
     .pt-tab:hover { background:#e0f2fe; color:#0ea5e9; }
     .pt-active { background:#bae6fd !important; color:#0369a1 !important; }
 

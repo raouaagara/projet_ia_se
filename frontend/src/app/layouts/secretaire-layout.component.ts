@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIf, NgFor } from '@angular/common';
 import { AuthService } from '../core/auth.service';
@@ -17,7 +17,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
 
         <!-- Logo -->
         <div class="sl-brand">
-          <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+          <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="MediCare"></span>
           <span class="brand-caption sl-brand-role">Secrétariat</span>
         </div>
 
@@ -97,7 +97,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
         <!-- Mobile sidebar -->
         <aside class="sl-sidebar sl-sidebar-mobile" [class.open]="sidebarOpen">
           <div class="sl-brand">
-            <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+            <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="MediCare"></span>
             <span class="brand-caption sl-brand-role">Secrétariat</span>
           </div>
           <nav class="sl-nav">
@@ -237,11 +237,12 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     }
   `]
 })
-export class SecretaireLayoutComponent implements OnInit {
+export class SecretaireLayoutComponent implements OnInit, OnDestroy {
   dark         = false;
   sidebarOpen  = false;
   notifCount   = 0;
   rdvCount     = 0;
+  private timer?: ReturnType<typeof setInterval>;
 
   constructor(public auth: AuthService, private api: ApiService) {}
 
@@ -250,7 +251,11 @@ export class SecretaireLayoutComponent implements OnInit {
     this.dark = saved === 'dark';
     document.documentElement.classList.toggle('dark', this.dark);
     this.loadCounts();
-    setInterval(() => this.loadCounts(), 15000);
+    this.timer = setInterval(() => this.loadCounts(), 15000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.timer) clearInterval(this.timer);
   }
 
   private loadCounts(): void {

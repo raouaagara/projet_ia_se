@@ -19,9 +19,6 @@ import { filter } from 'rxjs/operators';
           <p class="notif-sub">{{ nonLues }} non lue{{ nonLues > 1 ? 's' : '' }}</p>
         </div>
         <div class="notif-header-actions">
-          <button class="notif-btn notif-btn-test" (click)="creerNotifTest()" title="Créer une notification de test">
-            <i class="fa fa-plus"></i> Test
-          </button>
           <button class="notif-btn" (click)="toutLire()" *ngIf="nonLues > 0">
             <i class="fa fa-check-double"></i> Tout marquer comme lu
           </button>
@@ -88,10 +85,6 @@ import { filter } from 'rxjs/operators';
       font-size:13px; font-weight:600; cursor:pointer; transition:all .18s;
     }
     .notif-btn:hover { background:#f0f9ff; border-color:#bfdbfe; color:#0f6cbd; }
-    .notif-btn-test {
-      border-color:#d1fae5; color:#15803d; background:#f0fdf4;
-    }
-    .notif-btn-test:hover { background:#15803d; color:#fff; border-color:#15803d; }
 
     /* Tabs */
     .notif-tabs {
@@ -216,12 +209,6 @@ export class NotificationsComponent implements OnInit {
       this.notifications.forEach(n => n.lue = true);
       this.nonLues = 0;
     });
-  }
-
-  creerNotifTest(): void {
-    const uid = this.auth.current()?.id;
-    if (!uid) return;
-    this.api.createNotifTest(uid).subscribe(() => this.load());
   }
 
   filtered(): any[] {

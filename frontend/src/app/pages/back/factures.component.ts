@@ -1,3 +1,4 @@
+import { MontantPipe, formatMontant } from '../../shared/montant.pipe';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf, DecimalPipe, DatePipe } from '@angular/common';
@@ -7,7 +8,7 @@ import { AuthService } from '../../core/auth.service';
 @Component({
   selector: 'app-factures',
   standalone: true,
-  imports: [ReactiveFormsModule, NgFor, NgIf, DecimalPipe, DatePipe],
+  imports: [MontantPipe, ReactiveFormsModule, NgFor, NgIf, DecimalPipe, DatePipe],
   template: `
     <div class="fac-page">
 
@@ -39,7 +40,7 @@ import { AuthService } from '../../core/auth.service';
         </div>
         <div class="fac-kpi">
           <div class="fac-kpi-icon" style="background:#f0fdf4;color:#166534"><i class="fa fa-coins"></i></div>
-          <div><div class="fac-kpi-v">{{ totalRevenus() | number:'1.0-0' }} €</div><div class="fac-kpi-l">Revenus encaissés</div></div>
+          <div><div class="fac-kpi-v">{{ totalRevenus() | montant:0 }}</div><div class="fac-kpi-l">Revenus encaissés</div></div>
         </div>
       </div>
 
@@ -73,11 +74,11 @@ import { AuthService } from '../../core/auth.service';
 
           <div class="fac-row">
             <div class="fac-field">
-              <label>Montant total (€) <span class="req">*</span></label>
+              <label>Montant total (DT) <span class="req">*</span></label>
               <input type="number" formControlName="montantTotal" step="0.01" min="0" placeholder="0.00">
             </div>
             <div class="fac-field">
-              <label>Montant payé (€)</label>
+              <label>Montant payé (DT)</label>
               <input type="number" formControlName="montantPaye" step="0.01" min="0" placeholder="0.00">
             </div>
             <div class="fac-field">
@@ -155,8 +156,8 @@ import { AuthService } from '../../core/auth.service';
                 </td>
                 <td>{{ f.medecinNom || '—' }}</td>
                 <td>{{ f.dateFacture | date:'dd/MM/yyyy' }}</td>
-                <td class="fac-amount">{{ f.montantTotal | number:'1.2-2' }} €</td>
-                <td class="fac-amount">{{ f.montantPaye | number:'1.2-2' }} €</td>
+                <td class="fac-amount">{{ f.montantTotal | montant }}</td>
+                <td class="fac-amount">{{ f.montantPaye | montant }}</td>
                 <td><span class="fac-badge" [class]="badgeClass(f.statut)">{{ statutLabel(f.statut) }}</span></td>
                 <td *ngIf="canEdit()">
                   <button class="btn-icon" title="Modifier" (click)="edit(f)"><i class="fa fa-pen"></i></button>
@@ -367,8 +368,8 @@ Date : ${f.dateFacture}
 Patient : ${f.patientNom}
 Médecin : ${f.medecinNom || 'N/A'}
 ──────────────────────────────
-Montant total : ${f.montantTotal} €
-Montant payé  : ${f.montantPaye} €
+Montant total : ${formatMontant(f.montantTotal)}
+Montant payé  : ${formatMontant(f.montantPaye)}
 Statut        : ${this.statutLabel(f.statut)}
 ──────────────────────────────
 Notes : ${f.notes || 'Aucune'}

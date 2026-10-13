@@ -25,11 +25,13 @@ public class OrdonnanceController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT','PHARMACIEN')")
     public OrdonnanceDto findById(@PathVariable Long id) {
         return service.findById(id);
     }
 
     @GetMapping("/patient/{patientId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
     public List<OrdonnanceDto> findByPatient(@PathVariable Long patientId) {
         return service.findByPatient(patientId);
     }

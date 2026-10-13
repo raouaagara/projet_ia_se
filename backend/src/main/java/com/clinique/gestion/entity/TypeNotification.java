@@ -8,5 +8,7 @@ public enum TypeNotification {
     RDV_CONFIRME,
     RDV_ANNULE,
     RESULTAT_DISPONIBLE,
-    INFORMATION
+    INFORMATION,
+    ALERTE_STOCK,
+    ORDONNANCE_DELIVREE
 }

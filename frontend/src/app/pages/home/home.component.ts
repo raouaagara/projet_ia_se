@@ -14,7 +14,7 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
     <nav class="hn hn-solid" [class.hn-scrolled]="scrolled">
       <div class="hn-inner">
         <a class="hn-brand" routerLink="/">
-          <img class="brand-logo hn-logo-img" src="assets/logo.png" alt="Medicare">
+          <img class="brand-logo hn-logo-img" src="assets/logo.png" alt="MediCare">
         </a>
         <div class="hn-links">
           <a href="#services">Services</a>
@@ -77,9 +77,9 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
             <div class="hh-trust-item"><i class="fa fa-circle-check"></i> RDV en 2 minutes</div>
           </div>
           <div class="hh-stats rv">
-            <div class="hh-stat"><span class="hh-sv">{{ stats.patients || 0 }}+</span><span class="hh-sl">Patients</span></div>
+            <div class="hh-stat"><span class="hh-sv">{{ specialites() }}</span><span class="hh-sl">Spécialités</span></div>
             <div class="hh-sdiv"></div>
-            <div class="hh-stat"><span class="hh-sv">{{ stats.medecins || 0 }}+</span><span class="hh-sl">Médecins</span></div>
+            <div class="hh-stat"><span class="hh-sv">{{ medecins.length }}</span><span class="hh-sl">Médecins</span></div>
             <div class="hh-sdiv"></div>
             <div class="hh-stat"><span class="hh-sv">15+</span><span class="hh-sl">Spécialités</span></div>
             <div class="hh-sdiv"></div>
@@ -314,7 +314,7 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
     <footer class="hf">
       <div class="hf-inner">
         <div class="hf-brand">
-          <span class="brand-chip hf-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+          <span class="brand-chip hf-chip"><img class="brand-logo" src="assets/logo.png" alt="MediCare"></span>
           <p class="hf-tag">Votre santé, notre priorité.</p>
         </div>
         <div class="hf-cols">
@@ -749,7 +749,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   scrolled = false;
   menu = false;
   medecins: any[] = [];
-  stats: any = {};
 
   services = [
     { icon:'fa-heart-pulse',   title:'Cardiologie',      desc:'ECG, écho-cardiographie et bilan cardiovasculaire complet.',      bg:'#fff1f2', color:'#e11d48' },
@@ -808,7 +807,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.api.medecins().subscribe(m => this.medecins = m);
-    this.api.stats().subscribe(s => this.stats = s);
   }
 
   ngAfterViewInit(): void {
@@ -833,4 +831,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   @HostListener('window:scroll')
   onScroll(): void { this.scrolled = window.scrollY > 40; }
+
+  /** Nombre de spécialités représentées (données publiques uniquement). */
+  specialites(): number {
+    return new Set(this.medecins.map((m: any) => m.specialite).filter(Boolean)).size;
+  }
 }

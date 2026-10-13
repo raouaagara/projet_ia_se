@@ -42,6 +42,7 @@ public class RappelRdvService {
                 .stream()
                 .filter(r -> r.getStatut() == StatutRendezVous.CONFIRME
                           || r.getStatut() == StatutRendezVous.PLANIFIE)
+                .filter(r -> !r.isRappelEnvoye())
                 .toList();
 
         for (RendezVous rdv : rdvs) {
@@ -56,6 +57,9 @@ public class RappelRdvService {
                         dateStr,
                         rdv.getId());
             }
+            // Un seul rappel par rendez-vous, même si la tâche s'exécute toutes les heures.
+            rdv.setRappelEnvoye(true);
+            rendezVousRepository.save(rdv);
         }
 
         if (!rdvs.isEmpty()) {

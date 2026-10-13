@@ -163,11 +163,12 @@ import { ApiService } from '../../core/api.service';
             <div class="u-form-group">
               <label class="u-label">Rôle <span class="u-required">*</span></label>
               <select class="u-input" formControlName="role">
-                <option value="ADMIN">ADMIN</option>
-                <option value="MEDECIN">MEDECIN</option>
-                <option value="SECRETAIRE">SECRETAIRE</option>
-                <option value="PATIENT">PATIENT</option>
-                <option value="LABO">LABO</option>
+                <option value="ADMIN">Administrateur</option>
+                <option value="MEDECIN">Médecin</option>
+                <option value="SECRETAIRE">Secrétaire</option>
+                <option value="PATIENT">Patient</option>
+                <option value="LABO">Laborantin</option>
+                <option value="PHARMACIEN">Pharmacien</option>
               </select>
             </div>
           </div>
@@ -464,7 +465,7 @@ export class UtilisateursComponent implements OnInit {
   roleColor(role: string): string {
     const colors: Record<string, string> = {
       ADMIN: '#ef4444', MEDECIN: '#0f6cbd', SECRETAIRE: '#f59e0b',
-      PATIENT: '#10b981', LABO: '#7e22ce'
+      PATIENT: '#10b981', LABO: '#7e22ce', PHARMACIEN: '#0d9488'
     };
     return colors[role] ?? '#64748b';
   }
@@ -472,7 +473,8 @@ export class UtilisateursComponent implements OnInit {
   roleIcon(role: string): string {
     const icons: Record<string, string> = {
       ADMIN: 'fa fa-shield-halved', MEDECIN: 'fa fa-user-doctor',
-      SECRETAIRE: 'fa fa-briefcase', PATIENT: 'fa fa-user', LABO: 'fa fa-flask'
+      SECRETAIRE: 'fa fa-briefcase', PATIENT: 'fa fa-user', LABO: 'fa fa-flask',
+      PHARMACIEN: 'fa fa-prescription-bottle-medical'
     };
     return icons[role] ?? 'fa fa-circle-user';
   }

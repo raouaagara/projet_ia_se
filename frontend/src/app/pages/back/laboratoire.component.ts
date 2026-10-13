@@ -305,7 +305,7 @@ import { catchError, of } from 'rxjs';
                 <label>Statut</label>
                 <select formControlName="statut">
                   <option value="EN_COURS">En cours d'analyse</option>
-                  <option value="RESULTAT_DISPONIBLE">✅ Résultat disponible</option>
+                  <option value="RESULTAT_DISPONIBLE">Résultat disponible</option>
                   <option value="ANNULE">Annulé</option>
                 </select>
               </div>

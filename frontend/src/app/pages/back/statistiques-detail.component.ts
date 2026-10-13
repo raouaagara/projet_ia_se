@@ -1,3 +1,4 @@
+import { MontantPipe } from '../../shared/montant.pipe';
 import { Component, OnInit } from '@angular/core';
 import { NgFor, NgIf, DecimalPipe, DatePipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
@@ -6,7 +7,7 @@ import { AuthService } from '../../core/auth.service';
 @Component({
   selector: 'app-statistiques-detail',
   standalone: true,
-  imports: [NgFor, NgIf, DecimalPipe, DatePipe],
+  imports: [MontantPipe, NgFor, NgIf, DecimalPipe, DatePipe],
   template: `
     <div class="stat-page">
 
@@ -90,14 +91,14 @@ import { AuthService } from '../../core/auth.service';
                 <div class="stat-revenue-icon" style="background:#dcfce7;color:#15803d">
                   <i class="fa fa-coins"></i>
                 </div>
-                <div class="stat-revenue-val">{{ stats.revenusTotal | number:'1.0-0' }} €</div>
+                <div class="stat-revenue-val">{{ stats.revenusTotal | montant:0 }}</div>
                 <div class="stat-revenue-lbl">Revenus totaux</div>
               </div>
               <div class="stat-revenue-box">
                 <div class="stat-revenue-icon" style="background:#dbeafe;color:#1d4ed8">
                   <i class="fa fa-calendar-day"></i>
                 </div>
-                <div class="stat-revenue-val">{{ stats.revenusMoisActuel | number:'1.0-0' }} €</div>
+                <div class="stat-revenue-val">{{ stats.revenusMoisActuel | montant:0 }}</div>
                 <div class="stat-revenue-lbl">Ce mois</div>
               </div>
               <div class="stat-revenue-box">
@@ -449,7 +450,7 @@ export class StatistiquesDetailComponent implements OnInit {
       { label: 'Factures',      val: this.stats.facturesTotal, icon: 'fa-file-invoice',   bg: '#fef9c3', color: '#854d0e' },
       { label: 'Examens',       val: this.stats.examensTotal,  icon: 'fa-flask',          bg: '#e0f2fe', color: '#0369a1' },
       { label: 'Utilisateurs',  val: this.stats.utilisateurs,  icon: 'fa-shield-halved',  bg: '#f0fdf4', color: '#166534' },
-      { label: 'Revenus (€)',   val: (this.stats.revenusTotal ?? 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 }),
+      { label: 'Revenus (DT)',   val: (this.stats.revenusTotal ?? 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 }),
         icon: 'fa-coins', bg: '#dcfce7', color: '#15803d', trend: 1 }
     ];
   }

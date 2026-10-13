@@ -94,8 +94,8 @@ import { catchError } from 'rxjs/operators';
                 <div class="prof-field">
                   <label>Disponibilité</label>
                   <select formControlName="disponible">
-                    <option [ngValue]="true">✅ Disponible</option>
-                    <option [ngValue]="false">❌ Indisponible</option>
+                    <option [ngValue]="true">Disponible</option>
+                    <option [ngValue]="false">Indisponible</option>
                   </select>
                 </div>
 

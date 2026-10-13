@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIf, NgFor } from '@angular/common';
 import { AuthService } from '../core/auth.service';
@@ -16,20 +16,23 @@ import { ChatbotComponent } from '../shared/chatbot.component';
       <header class="admin-nav">
         <div class="admin-nav-inner">
           <a class="admin-brand" routerLink="/back/dashboard">
-            <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
+            <span class="brand-chip"><img class="brand-logo" src="assets/logo.png" alt="MediCare"></span>
             <span class="brand-caption admin-brand-sub">Administration</span>
           </a>
           <nav class="admin-tabs">
-            <a routerLink="/back/dashboard"          routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-chart-pie"></i><span>Dashboard</span></a>
-            <a routerLink="/back/patients"           routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-users"></i><span>Patients</span></a>
-            <a routerLink="/back/medecins"           routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-user-doctor"></i><span>Médecins</span></a>
-            <a routerLink="/back/rendez-vous"        routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-calendar-check"></i><span>Rendez-vous</span></a>
-            <a routerLink="/back/plannings"          routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-calendar-days"></i><span>Planning</span></a>
-            <a routerLink="/back/consultations"      routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-stethoscope"></i><span>Consultations</span></a>
-            <a routerLink="/back/examens"            routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-flask"></i><span>Examens</span></a>
-            <a routerLink="/back/factures"           routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-file-invoice-dollar"></i><span>Factures</span></a>
-            <a routerLink="/back/statistiques-detail"routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-chart-line"></i><span>Statistiques</span></a>
-            <a routerLink="/back/utilisateurs"       routerLinkActive="admin-active" class="admin-tab"><i class="fa fa-shield-halved"></i><span>Utilisateurs</span></a>
+            <a routerLink="/back/dashboard"          routerLinkActive="admin-active" class="admin-tab" title="Dashboard"><i class="fa fa-chart-pie"></i><span>Dashboard</span></a>
+            <a routerLink="/back/patients"           routerLinkActive="admin-active" class="admin-tab" title="Patients"><i class="fa fa-users"></i><span>Patients</span></a>
+            <a routerLink="/back/medecins"           routerLinkActive="admin-active" class="admin-tab" title="Médecins"><i class="fa fa-user-doctor"></i><span>Médecins</span></a>
+            <a routerLink="/back/rendez-vous"        routerLinkActive="admin-active" class="admin-tab" title="Rendez-vous"><i class="fa fa-calendar-check"></i><span>Rendez-vous</span></a>
+            <a routerLink="/back/plannings"          routerLinkActive="admin-active" class="admin-tab" title="Planning"><i class="fa fa-calendar-days"></i><span>Planning</span></a>
+            <a routerLink="/back/consultations"      routerLinkActive="admin-active" class="admin-tab" title="Consultations"><i class="fa fa-stethoscope"></i><span>Consultations</span></a>
+            <a routerLink="/back/examens"            routerLinkActive="admin-active" class="admin-tab" title="Examens"><i class="fa fa-flask"></i><span>Examens</span></a>
+            <a routerLink="/back/ordonnances"        routerLinkActive="admin-active" class="admin-tab" title="Ordonnances"><i class="fa fa-file-prescription"></i><span>Ordonnances</span></a>
+            <a routerLink="/back/factures"           routerLinkActive="admin-active" class="admin-tab" title="Factures"><i class="fa fa-file-invoice-dollar"></i><span>Factures</span></a>
+            <a routerLink="/pharmacie"                routerLinkActive="admin-active" class="admin-tab" title="Pharmacie"><i class="fa fa-prescription-bottle-medical"></i><span>Pharmacie</span></a>
+            <a routerLink="/back/ia"                 routerLinkActive="admin-active" class="admin-tab" title="IA & prévisions"><i class="fa fa-wand-magic-sparkles"></i><span>IA &amp; prévisions</span></a>
+            <a routerLink="/back/statistiques-detail" routerLinkActive="admin-active" class="admin-tab" title="Statistiques"><i class="fa fa-chart-line"></i><span>Statistiques</span></a>
+            <a routerLink="/back/utilisateurs"       routerLinkActive="admin-active" class="admin-tab" title="Utilisateurs"><i class="fa fa-shield-halved"></i><span>Utilisateurs</span></a>
           </nav>
           <div class="admin-right">
             <a routerLink="/front" class="admin-chip-sm" title="Espace patient"><i class="fa fa-arrow-up-right-from-square"></i></a>
@@ -59,7 +62,10 @@ import { ChatbotComponent } from '../shared/chatbot.component';
           <a routerLink="/back/plannings"    (click)="mob=false"><i class="fa fa-calendar-days"></i> Planning</a>
           <a routerLink="/back/consultations"(click)="mob=false"><i class="fa fa-stethoscope"></i> Consultations</a>
           <a routerLink="/back/examens"      (click)="mob=false"><i class="fa fa-flask"></i> Examens</a>
+          <a routerLink="/back/ordonnances"  (click)="mob=false"><i class="fa fa-file-prescription"></i> Ordonnances</a>
           <a routerLink="/back/factures"     (click)="mob=false"><i class="fa fa-file-invoice-dollar"></i> Factures</a>
+          <a routerLink="/pharmacie"         (click)="mob=false"><i class="fa fa-prescription-bottle-medical"></i> Pharmacie</a>
+          <a routerLink="/back/ia"           (click)="mob=false"><i class="fa fa-wand-magic-sparkles"></i> IA &amp; prévisions</a>
           <a routerLink="/back/statistiques-detail"(click)="mob=false"><i class="fa fa-chart-line"></i> Statistiques</a>
           <a routerLink="/back/notifications"(click)="mob=false"><i class="fa fa-bell"></i> Notifications</a>
           <a routerLink="/back/utilisateurs" (click)="mob=false"><i class="fa fa-shield-halved"></i> Utilisateurs</a>
@@ -74,8 +80,8 @@ import { ChatbotComponent } from '../shared/chatbot.component';
       <aside class="med-sidebar" [class.collapsed]="collapsed">
         <!-- Brand -->
         <div class="med-brand">
-          <span class="brand-chip" *ngIf="!collapsed"><img class="brand-logo" src="assets/logo.png" alt="Medicare"></span>
-          <span class="brand-chip med-logo-mark" *ngIf="collapsed"><img src="assets/logo-mark.png" alt="Medicare"></span>
+          <span class="brand-chip" *ngIf="!collapsed"><img class="brand-logo" src="assets/logo.png" alt="MediCare"></span>
+          <span class="brand-chip med-logo-mark" *ngIf="collapsed"><img src="assets/logo-mark.png" alt="MediCare"></span>
           <span class="brand-caption med-brand-sub" *ngIf="!collapsed">Espace Médecin</span>
         </div>
         <!-- User -->
@@ -100,6 +106,9 @@ import { ChatbotComponent } from '../shared/chatbot.component';
           </a>
           <a routerLink="/back/consultations"routerLinkActive="med-active" class="med-link" [title]="collapsed?'Consultations':''">
             <i class="fa fa-stethoscope"></i><span *ngIf="!collapsed">Consultations</span>
+          </a>
+          <a routerLink="/back/ordonnances"  routerLinkActive="med-active" class="med-link" [title]="collapsed?'Ordonnances':''">
+            <i class="fa fa-file-prescription"></i><span *ngIf="!collapsed">Ordonnances</span>
           </a>
           <a routerLink="/back/examens"      routerLinkActive="med-active" class="med-link" [title]="collapsed?'Examens':''">
             <i class="fa fa-flask"></i><span *ngIf="!collapsed">Examens</span>
@@ -166,6 +175,13 @@ import { ChatbotComponent } from '../shared/chatbot.component';
       color:rgba(255,255,255,.6); text-decoration:none; white-space:nowrap; transition:all .18s;
     }
     .admin-tab i { font-size:13px; }
+    /* Écrans moyens : seul l'onglet actif affiche son libellé, les autres restent accessibles par icône + info-bulle. */
+    @media (max-width: 1700px) {
+      .admin-brand-sub { display:none; }
+      .admin-tab { padding:7px 10px; }
+      .admin-tab span { display:none; }
+      .admin-tab.admin-active span { display:inline; }
+    }
     .admin-tab:hover { background:rgba(255,255,255,.1); color:#fff; }
     .admin-active { background:rgba(59,130,246,.3) !important; color:#93c5fd !important; }
 
@@ -324,11 +340,12 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     }
   `]
 })
-export class BackLayoutComponent implements OnInit {
+export class BackLayoutComponent implements OnInit, OnDestroy {
   dark = false;
   mob = false;
   collapsed = false;
   notifCount = 0;
+  private timer?: ReturnType<typeof setInterval>;
 
   constructor(public auth: AuthService, private api: ApiService) {}
 
@@ -338,7 +355,11 @@ export class BackLayoutComponent implements OnInit {
     document.documentElement.classList.toggle('dark', this.dark);
     this.loadNotifCount();
     // Polling toutes les 15 secondes pour les notifications temps réel
-    setInterval(() => this.loadNotifCount(), 15000);
+    this.timer = setInterval(() => this.loadNotifCount(), 15000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.timer) clearInterval(this.timer);
   }
 
   private loadNotifCount(): void {

@@ -105,10 +105,10 @@ export class ApiService {
   marquerNotifsLues(uid: number) { return this.http.put(`${this.base}/notifications/utilisateur/${uid}/lire-tout`, {}); }
   marquerToutesLues(uid: number) { return this.marquerNotifsLues(uid); } // alias
   supprimerNotification(id: number) { return this.http.delete(`${this.base}/notifications/${id}`); }
-  createNotifTest(uid: number) { return this.http.post(`${this.base}/notifications/test/${uid}`, {}); }
 
   // ── CHATBOT ──────────────────────────────────────────────────────
-  chatbot(message: string, contexte = 'clinique', role?: string, userName?: string) {
-    return this.http.post<{ reponse: string; source: string }>(`${this.base}/chatbot`, { message, contexte, role, userName });
+  /** Le rôle et l'identité sont déduits du jeton côté serveur. */
+  chatbot(message: string) {
+    return this.http.post<{ reponse: string; source: string }>(`${this.base}/chatbot`, { message });
   }
 }

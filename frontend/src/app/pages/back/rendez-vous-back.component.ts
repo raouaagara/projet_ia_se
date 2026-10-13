@@ -426,13 +426,13 @@ export class RendezVousBackComponent implements OnInit {
         if (idx >= 0) this.items[idx] = { ...this.items[idx], statut };
 
         if (statut === 'CONFIRME') {
-          this.showToast('success', 'fa fa-circle-check', '✅ RDV Confirmé',
+          this.showToast('success', 'fa fa-circle-check', 'Rendez-vous confirmé',
             `Le rendez-vous de ${r.patientNom} a été confirmé. Notifications envoyées.`);
         } else if (statut === 'ANNULE') {
-          this.showToast('error', 'fa fa-circle-xmark', '❌ RDV Annulé',
+          this.showToast('error', 'fa fa-circle-xmark', 'Rendez-vous annulé',
             `Le rendez-vous de ${r.patientNom} a été annulé. Notifications envoyées.`);
         } else {
-          this.showToast('info', 'fa fa-flag-checkered', '🏁 RDV Terminé',
+          this.showToast('info', 'fa fa-flag-checkered', 'Rendez-vous terminé',
             `Le rendez-vous de ${r.patientNom} est marqué comme terminé.`);
         }
       },

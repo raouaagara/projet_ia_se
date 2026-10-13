@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, ElementRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf, SlicePipe } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { MedecinWidgetComponent } from '../../shared/medecin-widget.component';
@@ -351,11 +352,18 @@ export class RendezVousFrontComponent implements OnInit, AfterViewInit {
     motif: ['']
   });
 
-  constructor(private fb: FormBuilder, private api: ApiService, private auth: AuthService, private el: ElementRef) {}
+  constructor(private fb: FormBuilder, private api: ApiService, private auth: AuthService, private el: ElementRef, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
     const uid = this.auth.current()?.id;
     this.api.medecins().subscribe(m => this.medecins = m);
+    // Arrivée depuis le pré-diagnostic IA : médecin et motif présélectionnés.
+    const params = this.route.snapshot.queryParamMap;
+    const medecinId = Number(params.get('medecinId'));
+    if (medecinId) {
+      this.form.patchValue({ medecinId, motif: params.get('motif') ?? '' });
+      this.showForm = true;
+    }
     if (!uid) return;
     this.api.patientByUser(uid).pipe(catchError(() => of(null))).subscribe(p => {
       if (!p) {

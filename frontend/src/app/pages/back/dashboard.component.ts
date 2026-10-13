@@ -14,7 +14,7 @@ import { AuthService } from '../../core/auth.service';
       <!-- ══════════ WELCOME BANNER ══════════ -->
       <div class="db-banner">
         <div class="db-banner-left">
-          <div class="db-greeting">{{ greeting() }}, <strong>{{ auth.current()?.prenom }} {{ auth.current()?.nom }}</strong> 👋</div>
+          <div class="db-greeting">{{ greeting() }}, <strong>{{ auth.current()?.prenom }} {{ auth.current()?.nom }}</strong></div>
           <div class="db-date">{{ today }}</div>
           <div class="db-role-desc">{{ roleDesc() }}</div>
         </div>

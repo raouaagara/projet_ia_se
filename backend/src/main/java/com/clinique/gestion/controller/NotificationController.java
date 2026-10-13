@@ -10,50 +10,47 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/** Notifications d'un utilisateur : chacun n'accède qu'aux siennes (contrôle dans le service). */
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 @Tag(name = "Notifications")
+@PreAuthorize("isAuthenticated()")
 public class NotificationController {
 
     private final NotificationService notificationService;
 
     @GetMapping("/utilisateur/{uid}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
     public List<NotificationDto> findByUtilisateur(@PathVariable Long uid) {
+        notificationService.verifierProprietaire(uid);
         return notificationService.findByUtilisateur(uid);
     }
 
     @GetMapping("/utilisateur/{uid}/non-lues")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
     public List<NotificationDto> findNonLues(@PathVariable Long uid) {
+        notificationService.verifierProprietaire(uid);
         return notificationService.findNonLues(uid);
     }
 
     @GetMapping("/utilisateur/{uid}/count")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
     public Map<String, Long> countNonLues(@PathVariable Long uid) {
+        notificationService.verifierProprietaire(uid);
         return Map.of("count", notificationService.countNonLues(uid));
     }
 
     @PutMapping("/{id}/lire")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
-    public void marquerLue(@PathVariable Long id) { notificationService.marquerLue(id); }
+    public void marquerLue(@PathVariable Long id) {
+        notificationService.marquerLue(id);
+    }
 
     @PutMapping("/utilisateur/{uid}/lire-tout")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
-    public void marquerToutesLues(@PathVariable Long uid) { notificationService.marquerToutesLues(uid); }
+    public void marquerToutesLues(@PathVariable Long uid) {
+        notificationService.verifierProprietaire(uid);
+        notificationService.marquerToutesLues(uid);
+    }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
-    public void supprimer(@PathVariable Long id) { notificationService.supprimer(id); }
-
-    /** Crée une notification de test pour un utilisateur (pratique en développement) */
-    @PostMapping("/test/{uid}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
-    public void createTest(@PathVariable Long uid) {
-        notificationService.creer(uid, "🔔 Notification de test",
-            "Ceci est une notification de test créée manuellement.",
-            com.clinique.gestion.entity.TypeNotification.INFORMATION, null, null);
+    public void supprimer(@PathVariable Long id) {
+        notificationService.supprimer(id);
     }
 }

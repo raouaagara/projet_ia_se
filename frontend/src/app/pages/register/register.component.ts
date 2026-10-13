@@ -12,7 +12,7 @@ import { AuthService } from '../../core/auth.service';
     <div class="auth-split">
       <!-- ── Formulaire ── -->
       <section class="auth-form-side">
-        <a routerLink="/" class="auth-brand"><img src="assets/logo.png" alt="Medicare"></a>
+        <a routerLink="/" class="auth-brand"><img src="assets/logo.png" alt="MediCare"></a>
 
         <div class="auth-form-wrap">
         <span class="auth-eyebrow">Espace patient</span>
@@ -68,7 +68,7 @@ import { AuthService } from '../../core/auth.service';
         </div>
         </div>
 
-        <div class="auth-legal">© 2026 Medicare — Clinique Médicale</div>
+        <div class="auth-legal">© 2026 MediCare — Clinique Médicale</div>
       </section>
 
       <!-- ── Visuel ── -->

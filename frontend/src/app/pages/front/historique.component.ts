@@ -125,11 +125,11 @@ import { catchError } from 'rxjs/operators';
                   <i class="fa fa-prescription" style="color:#00b389"></i>
                   Ordonnance médicale
                 </div>
-                <span class="hc-badge" style="background:#dcfce7;color:#15803d">Délivrée</span>
+                <span class="hc-badge" [style.background]="statutDelivrance(o).fond" [style.color]="statutDelivrance(o).texte">{{ statutDelivrance(o).libelle }}</span>
               </div>
               <div class="hc-detail" *ngIf="o.medicaments">
                 <i class="fa fa-pills" style="color:#f59e0b"></i>
-                <span>{{ o.medicaments }}</span>
+                <span style="white-space:pre-line">{{ o.medicaments }}</span>
               </div>
             </div>
           </div>
@@ -270,5 +270,15 @@ export class HistoriqueComponent implements OnInit, AfterViewInit {
   monthShort(d: string): string {
     const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
     return d ? months[+d.slice(5, 7) - 1] ?? '' : '';
+  }
+
+  /** Avancement de la délivrance par la pharmacie de la clinique. */
+  statutDelivrance(o: any): { libelle: string; fond: string; texte: string } {
+    switch (o.statutDelivrance) {
+      case 'COMPLETE':     return { libelle: 'Délivrée', fond: '#dcfce7', texte: '#15803d' };
+      case 'PARTIELLE':    return { libelle: 'Partiellement délivrée', fond: '#ffedd5', texte: '#c2410c' };
+      case 'NON_DELIVREE': return { libelle: 'À retirer à la pharmacie', fond: '#e0f2fe', texte: '#0369a1' };
+      default:             return { libelle: 'Prescrite', fond: '#f1f5f9', texte: '#475569' };
+    }
   }
 }

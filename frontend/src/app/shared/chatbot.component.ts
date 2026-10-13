@@ -1,7 +1,6 @@
 import { Component, signal, ViewChild, ElementRef, AfterViewChecked, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
 
@@ -67,7 +66,7 @@ interface Msg { from: 'user' | 'bot'; text: string; time: string; typing?: boole
           </div>
           <div class="cb-meta" [class.user-meta]="m.from==='user'">
             {{ m.time }}
-            <span class="cb-source" *ngIf="m.source === 'GROQ'">· IA</span>
+            <span class="cb-source" *ngIf="m.source === 'GROQ'">· modèle IA</span>
           </div>
         </div>
       </div>
@@ -283,7 +282,7 @@ export class ChatbotComponent implements AfterViewChecked {
     time: this.now()
   }]);
 
-  constructor(private api: ApiService, public auth: AuthService, private http: HttpClient) {}
+  constructor(private api: ApiService, public auth: AuthService) {}
 
   ngAfterViewChecked(): void { this.scrollToBottom(); }
 
@@ -302,227 +301,24 @@ export class ChatbotComponent implements AfterViewChecked {
     this.busy  = true;
     this.messages.update(l => [...l, { from: 'bot', text: '', time: '', typing: true }]);
 
-    const role     = this.auth.role() ?? 'PATIENT';
-    const userName = this.auth.current()?.prenom ?? '';
-
-    // Appel direct Groq depuis le frontend
-    this.api.stats().subscribe({
-      next: (stats) => {
-        const systemPrompt = this.buildSystemPrompt(role, userName, stats);
-        this.callGroq(text, systemPrompt);
-      },
-      error: () => {
-        // Stats non dispo, appeler Groq sans contexte
-        const systemPrompt = this.buildSystemPrompt(role, userName, null);
-        this.callGroq(text, systemPrompt);
-      }
-    });
-  }
-
-  private callGroq(message: string, systemPrompt: string): void {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer YOUR_GROQ_API_KEY'
-    });
-
-    const body = {
-      model: 'qwen/qwen3.8-27b',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user',   content: message }
-      ],
-      max_tokens: 700,
-      temperature: 0.7
-    };
-
-    this.http.post<any>('https://api.groq.com/openai/v1/chat/completions', body, { headers }).subscribe({
+    // La clé de l'API IA reste côté serveur : le navigateur n'appelle que le backend.
+    this.api.chatbot(text).subscribe({
       next: (res) => {
         this.busy = false;
-        const reply = res?.choices?.[0]?.message?.content ?? 'Je n\'ai pas pu répondre.';
         this.messages.update(l => [
           ...l.filter(m => !m.typing),
-          { from: 'bot', text: reply, time: this.now(), source: 'GROQ' }
+          { from: 'bot', text: res.reponse, time: this.now(), source: res.source }
         ]);
         if (!this.open()) this.unread++;
       },
       error: () => {
         this.busy = false;
-        // Fallback: appel backend
-        this.api.chatbot(message, 'clinique', this.auth.role() ?? 'PATIENT', this.auth.current()?.prenom ?? '').subscribe({
-          next: (res) => {
-            this.messages.update(l => [
-              ...l.filter(m => !m.typing),
-              { from: 'bot', text: res.reponse, time: this.now() }
-            ]);
-          },
-          error: () => {
-            this.messages.update(l => [
-              ...l.filter(m => !m.typing),
-              { from: 'bot', text: '⚠️ Service temporairement indisponible.', time: this.now() }
-            ]);
-          }
-        });
+        this.messages.update(l => [
+          ...l.filter(m => !m.typing),
+          { from: 'bot', text: 'Le service est momentanément indisponible. Veuillez réessayer dans quelques instants.', time: this.now() }
+        ]);
       }
     });
-  }
-
-  private buildSystemPrompt(role: string, userName: string, stats: any): string {
-    const name = userName || 'utilisateur';
-
-    // Contexte commun clinique
-    const cliniqueBase = stats ? `
-DONNÉES TEMPS RÉEL DE LA CLINIQUE :
-- Patients inscrits       : ${stats.patients ?? 0}
-- Médecins                : ${stats.medecins ?? 0} (${stats.medecinsDisponibles ?? 0} disponibles)
-- Rendez-vous total       : ${stats.rendezVous ?? 0}
-  • Planifiés : ${stats.rendezVousPlanifies ?? 0}
-  • Confirmés : ${stats.rendezVousConfirmes ?? 0}
-  • Terminés  : ${stats.rendezVousTermines ?? 0}
-  • Annulés   : ${stats.rendezVousAnnules ?? 0}
-- Consultations           : ${stats.consultations ?? 0}
-- Ordonnances             : ${stats.ordonnances ?? 0}
-- Examens labo            : ${stats.examensTotal ?? 0}
-- Factures                : total ${stats.facturesTotal ?? 0}, payées ${stats.facturesPayees ?? 0}
-- Revenus encaissés       : ${stats.revenusTotal ?? 0} €
-- Taux de confirmation RDV: ${stats.tauxConfirmation ?? 0}%
-- Horaires clinique       : Lun-Ven 08h-18h, Sam 09h-13h
-` : 'Données cliniques non disponibles pour le moment.';
-
-    switch (role.toUpperCase()) {
-
-      // ── MÉDECIN ──────────────────────────────────────────────────────────
-      case 'MEDECIN':
-        return `Tu es MediAssist, l'assistant IA médical intégré à la plateforme MediCare.
-Tu t'adresses exclusivement au Dr ${name}, médecin de la clinique.
-
-${cliniqueBase}
-
-TON RÔLE AVEC LE MÉDECIN :
-1. GESTION CLINIQUE : aide à consulter ses rendez-vous, patients, consultations et examens
-2. AIDE MÉDICALE GÉNÉRALE : réponds aux questions sur les pathologies, traitements, protocoles, interactions médicamenteuses
-3. RÉDACTION : aide à rédiger des notes de consultation, comptes-rendus, ordonnances types, lettres de référence
-4. DIAGNOSTIC DIFFÉRENTIEL : propose des pistes diagnostiques si demandé (jamais définitives)
-5. PHARMACOLOGIE : informations sur les médicaments, posologies, contre-indications
-
-RÈGLES STRICTES :
-- Tu parles à un MÉDECIN qualifié — adopte un langage médical précis et professionnel
-- Utilise la terminologie médicale appropriée
-- Ne simplifie pas excessivement — il est expert
-- Pour les urgences vitales patient, renvoie vers le 15 (SAMU)
-- Ne donne jamais de diagnostic définitif sur un cas réel non examiné
-- Si le médecin demande "mes RDV" ou "mon planning", utilise les données ci-dessus
-- Réponds TOUJOURS en français`;
-
-      // ── ADMIN ─────────────────────────────────────────────────────────────
-      case 'ADMIN':
-        return `Tu es MediAssist, l'assistant IA d'administration de la clinique MediCare.
-Tu t'adresses à ${name}, administrateur système de la clinique.
-
-${cliniqueBase}
-
-TON RÔLE AVEC L'ADMIN :
-1. ANALYSE & REPORTING : analyse les statistiques, identifie les tendances, compare les périodes
-2. GESTION DES RESSOURCES : optimisation du planning médecins, taux d'occupation, disponibilités
-3. FACTURATION & FINANCES : suivi revenus, factures en attente, taux de paiement
-4. GESTION UTILISATEURS : aide pour la création/gestion des comptes, rôles, accès
-5. OPTIMISATION : recommandations pour améliorer les performances de la clinique
-6. RAPPORTS : génère des synthèses textuelles basées sur les données réelles
-
-RÈGLES :
-- Utilise TOUJOURS les données temps réel fournies pour répondre avec précision
-- Présente les données sous forme structurée (tableaux, listes) quand pertinent
-- Propose des analyses proactives (ex: "Je remarque que le taux d'annulation est élevé...")
-- Réponds TOUJOURS en français, de manière concise et orientée décision`;
-
-      // ── SECRÉTAIRE ────────────────────────────────────────────────────────
-      case 'SECRETAIRE':
-        return `Tu es MediAssist, l'assistant IA de secrétariat médical de la clinique MediCare.
-Tu t'adresses à ${name}, secrétaire médicale de la clinique.
-
-${cliniqueBase}
-
-TON RÔLE AVEC LA SECRÉTAIRE :
-1. GESTION DES RDV : aide pour planifier, reprogrammer, confirmer ou annuler des rendez-vous
-2. ACCUEIL PATIENTS : scripts d'accueil téléphonique, gestion des urgences, priorisation
-3. PLANNING MÉDECINS : vérification des disponibilités, créneaux libres, gestion des absences
-4. FACTURATION : aide pour créer des factures, suivre les paiements, gérer les relances
-5. COMMUNICATION : rédaction de rappels RDV, lettres aux patients, emails professionnels
-6. PROCÉDURES : rappels des protocoles d'accueil, gestion des dossiers patients
-
-EXEMPLES DE RÉPONSES ATTENDUES :
-- "Pour confirmer le RDV de demain avec Dr Martin, vérifiez le statut dans Planning > Rendez-vous"
-- "Pour créer une facture, allez dans Facturation > Nouvelle facture"
-- Aide à formuler des messages de rappel aux patients
-
-RÈGLES :
-- Adapte ton langage au contexte administratif et médical
-- Sois pratique et opérationnel — donne des instructions étape par étape
-- Utilise les données réelles pour répondre sur les disponibilités
-- Réponds TOUJOURS en français`;
-
-      // ── LABO ──────────────────────────────────────────────────────────────
-      case 'LABO':
-        return `Tu es MediAssist, l'assistant IA spécialisé pour le laboratoire de la clinique MediCare.
-Tu t'adresses à ${name}, technicien(ne) de laboratoire médical.
-
-${cliniqueBase}
-
-TON RÔLE AVEC LE TECHNICIEN LABO :
-1. GESTION DES ANALYSES : aide pour gérer la file d'attente des examens, prioriser les urgences
-2. RÉFÉRENCE MÉDICALE LABO : valeurs normales de référence pour tous les examens courants (NFS, biochimie, etc.)
-3. INTERPRÉTATION DES RÉSULTATS : guide pour l'interprétation des valeurs (sans remplacer le médecin)
-4. PROTOCOLES ANALYTIQUES : procédures standard pour les différents types d'analyses
-5. RÉDACTION DES RÉSULTATS : aide à formuler des comptes-rendus clairs et structurés
-6. NOTIFICATIONS : rappels sur le processus de notification patient/médecin après publication
-
-VALEURS DE RÉFÉRENCE IMPORTANTES (adulte) :
-NFS : GR 4.5-5.5 M/µL, Hb 12-16 g/dL, GB 4-10 K/µL, Plaquettes 150-400 K/µL
-BIOCHIMIE : Glycémie 0.7-1.1 g/L, Créatinine 6-12 mg/L, Urée 0.15-0.45 g/L
-LIPIDES : Cholestérol total <2 g/L, LDL <1.6 g/L, HDL >0.4 g/L, TG <1.5 g/L
-FOIE : ASAT <40 UI/L, ALAT <41 UI/L, GGT <50 UI/L
-THYROÏDE : TSH 0.27-4.2 mUI/L, T4L 12-22 pmol/L
-IONOGRAMME : Na 136-145 mmol/L, K 3.5-5 mmol/L, Cl 98-106 mmol/L
-
-WORKFLOW PUBLICATION RÉSULTAT :
-1. Saisir les valeurs mesurées avec les unités
-2. Comparer aux valeurs de référence
-3. Rédiger une conclusion claire
-4. Choisir statut "Résultat disponible"
-5. La notification est envoyée automatiquement au patient ET au médecin prescripteur
-
-RÈGLES :
-- Utilise la terminologie biologique et médicale précise
-- Aide à rédiger des résultats structurés et complets
-- Rappelle toujours que l'interprétation clinique finale appartient au médecin
-- Pour les valeurs critiques (panic values), signale l'urgence de contacter le médecin immédiatement
-- Réponds TOUJOURS en français`;
-
-      // ── PATIENT ───────────────────────────────────────────────────────────
-      default:
-        return `Tu es MediAssist, l'assistant santé numérique de la clinique MediCare.
-Tu t'adresses à ${name}, patient de la clinique.
-
-INFORMATIONS CLINIQUE :
-- Médecins disponibles : ${stats?.medecinsDisponibles ?? 0} sur ${stats?.medecins ?? 0}
-- Horaires : Lun-Ven 08h-18h, Sam 09h-13h
-- Services : Consultations, Examens, Ordonnances, Facturation
-
-TON RÔLE AVEC LE PATIENT :
-1. ORIENTATION : guide pour prendre un rendez-vous, trouver le bon spécialiste
-2. INFORMATION SANTÉ : réponses claires sur les symptômes courants, prévention, hygiène de vie
-3. NAVIGATION PLATEFORME : explique comment utiliser l'espace patient (RDV, dossier, examens, factures)
-4. PRÉPARATION EXAMENS : explique comment se préparer pour des analyses (à jeun, etc.)
-5. COMPRENDRE LES RÉSULTATS : aide à comprendre les termes médicaux de ses résultats
-6. URGENCES : oriente vers les bons services en cas d'urgence
-
-RÈGLES ABSOLUES :
-- Utilise un langage SIMPLE, clair et rassurant — pas de jargon médical sans explication
-- Tu n'es PAS médecin — tes réponses sont informatives et éducatives UNIQUEMENT
-- Ne pose JAMAIS de diagnostic, même partiel
-- Pour tout symptôme grave : "Consultez un médecin rapidement" ou "Appelez le 15 si urgence vitale"
-- Sois empathique, chaleureux et rassurant
-- Réponds TOUJOURS en français`;
-    }
   }
 
   clearMessages(): void {
@@ -530,7 +326,9 @@ RÈGLES ABSOLUES :
   }
 
   formatText(text: string): string {
-    return (text ?? '')
+    const echappe = (text ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return echappe
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>');
   }
@@ -565,8 +363,20 @@ RÈGLES ABSOLUES :
       { icon:'fa fa-bell',           label:'Notifications',      text:'Comment fonctionne l\'envoi de notifications aux patients ?' },
       { icon:'fa fa-circle-check',   label:'Validation',         text:'Comment valider et publier un résultat d\'analyse ?' },
     ];
+    if (role === 'PHARMACIEN') return [
+      { icon:'fa fa-user-doctor', label:'Équipe médicale', text:'Quels médecins exercent à la clinique ?' },
+      { icon:'fa fa-clock',       label:'Horaires',        text:'Quels sont les horaires de la clinique ?' },
+      { icon:'fa fa-circle-info', label:'Aide',            text:'Que peux-tu faire pour moi ?' },
+    ];
+    if (!role) return [
+      { icon:'fa fa-user-doctor', label:'Nos médecins', text:'Quels médecins exercent à la clinique ?' },
+      { icon:'fa fa-clock',       label:'Horaires',     text:'Quels sont les horaires de la clinique ?' },
+      { icon:'fa fa-user-plus',   label:'Créer un compte', text:'Comment créer mon compte patient ?' },
+      { icon:'fa fa-triangle-exclamation', label:'Urgences', text:'Que faire en cas d\'urgence ?' },
+    ];
     // PATIENT
     return [
+      { icon:'fa fa-stethoscope',    label:'Pré-diagnostic',  text:'J\'ai des symptômes, quel spécialiste consulter ?' },
       { icon:'fa fa-calendar-plus',  label:'Prendre RDV',     text:'Comment prendre un rendez-vous ?' },
       { icon:'fa fa-user-doctor',    label:'Médecins',         text:'Quels médecins sont disponibles ?' },
       { icon:'fa fa-clock',          label:'Horaires',         text:'Quels sont les horaires de la clinique ?' },
@@ -577,35 +387,40 @@ RÈGLES ABSOLUES :
   welcomeMsg(): string {
     const role = this.auth.role();
     const name = this.auth.current()?.prenom ?? '';
-    const greeting = new Date().getHours() < 12 ? 'Bonjour' : 'Bonsoir';
+    const h = new Date().getHours();
+    const greeting = h >= 18 || h < 5 ? 'Bonsoir' : 'Bonjour';
     if (role === 'MEDECIN')
-      return `${greeting} Dr ${name} 👋\nJe suis **MediAssist**, votre assistant IA médical.\nJe peux vous aider avec vos rendez-vous, vos patients, des questions médicales générales, ou la rédaction de notes cliniques.\nComment puis-je vous aider aujourd'hui ?`;
+      return `${greeting} Dr ${name},\nJe suis **MediAssist**, l'assistant des médecins.\nJe peux vous aider sur vos rendez-vous, l'équipe médicale, des questions médicales générales ou la rédaction de notes.`;
     if (role === 'ADMIN')
-      return `${greeting} ${name} 👋\nJe suis **MediAssist**, votre assistant IA d'administration.\nJe peux analyser les statistiques de la clinique, répondre à vos questions sur l'activité, et vous aider dans la gestion.\nQue souhaitez-vous savoir ?`;
+      return `${greeting} ${name},\nJe suis **MediAssist**, l'assistant d'administration.\nJe peux résumer l'activité de la clinique et répondre à vos questions de gestion.`;
     if (role === 'SECRETAIRE')
-      return `${greeting} ${name} 👋\nJe suis **MediAssist**, votre assistant clinique.\nJe peux vous aider avec les plannings, les disponibilités des médecins et les informations pratiques.\nComment puis-je vous aider ?`;
+      return `${greeting} ${name},\nJe suis **MediAssist**, l'assistant du secrétariat.\nJe peux vous aider sur les rendez-vous, les disponibilités des médecins et les informations pratiques.`;
     if (role === 'LABO')
-      return `${greeting} ${name} 👋\nJe suis **MediAssist**, votre assistant laboratoire.\nJe peux vous aider à gérer les analyses, comprendre les protocoles, et optimiser votre flux de travail.\nComment puis-je vous aider ?`;
-    return `${greeting} ${name} 👋\nJe suis **MediAssist**, votre assistant santé de la clinique MediCare.\nPosez vos questions sur nos services, médecins ou rendez-vous.`;
+      return `${greeting} ${name},\nJe suis **MediAssist**, l'assistant du laboratoire.\nJe peux vous renseigner sur l'organisation de la clinique et le circuit des analyses.`;
+    if (role === 'PHARMACIEN')
+      return `${greeting} ${name},\nJe suis **MediAssist**, l'assistant de la pharmacie.\nJe peux vous renseigner sur l'organisation de la clinique et l'équipe médicale.`;
+    if (role === 'PATIENT')
+      return `${greeting} ${name},\nJe suis **MediAssist**, l'assistant santé de la clinique MediCare.\nPosez vos questions sur nos services, vos rendez-vous ou utilisez le pré-diagnostic pour savoir quel spécialiste consulter.`;
+    return `${greeting},\nJe suis **MediAssist**, l'assistant d'accueil de la clinique MediCare.\nJe peux vous présenter nos spécialités, nos horaires et la création d'un compte patient.`;
   }
 
-  roleLabel(): string {
-    const m: Record<string,string> = { MEDECIN:'Espace Médecin', ADMIN:'Administration', SECRETAIRE:'Secrétariat', PATIENT:'Espace Patient', LABO:'Laboratoire' };
-    return m[this.auth.role()??'PATIENT'] ?? 'Espace Patient';
+  private static readonly ROLES: Record<string, { label: string; icon: string; badge: string }> = {
+    MEDECIN:    { label: 'Espace Médecin',  icon: 'fa fa-user-doctor', badge: 'badge-medecin' },
+    ADMIN:      { label: 'Administration',  icon: 'fa fa-shield-halved', badge: 'badge-admin' },
+    SECRETAIRE: { label: 'Secrétariat',     icon: 'fa fa-briefcase', badge: 'badge-secretaire' },
+    PATIENT:    { label: 'Espace Patient',  icon: 'fa fa-user', badge: 'badge-patient' },
+    LABO:       { label: 'Laboratoire',     icon: 'fa fa-flask', badge: 'badge-labo' },
+    PHARMACIEN: { label: 'Pharmacie',       icon: 'fa fa-prescription-bottle-medical', badge: 'badge-labo' },
+  };
+  private roleInfo() {
+    return ChatbotComponent.ROLES[this.auth.role() ?? ''] ?? { label: 'Accueil', icon: 'fa fa-circle-info', badge: 'badge-patient' };
   }
-  roleIcon(): string {
-    const m: Record<string,string> = { MEDECIN:'fa fa-user-doctor', ADMIN:'fa fa-shield-halved', SECRETAIRE:'fa fa-briefcase', PATIENT:'fa fa-user', LABO:'fa fa-flask' };
-    return m[this.auth.role()??'PATIENT'] ?? 'fa fa-user';
-  }
-  roleBadgeClass(): string {
-    const m: Record<string,string> = { MEDECIN:'cb-role-badge badge-medecin', ADMIN:'cb-role-badge badge-admin', SECRETAIRE:'cb-role-badge badge-secretaire', PATIENT:'cb-role-badge badge-patient', LABO:'cb-role-badge badge-labo' };
-    return m[this.auth.role()??'PATIENT'] ?? 'cb-role-badge badge-patient';
-  }
-  modelName(): string { return 'Llama 3'; }
-    inputPlaceholder(): string {
+  roleLabel(): string { return this.roleInfo().label; }
+  roleIcon(): string { return this.roleInfo().icon; }
+  roleBadgeClass(): string { return 'cb-role-badge ' + this.roleInfo().badge; }
+  inputPlaceholder(): string {
     if (this.auth.role() === 'MEDECIN') return 'Question médicale, note clinique...';
-    if (this.auth.role() === 'ADMIN') return 'Statistiques, gestion, analyse...';
-    if (this.auth.role() === 'LABO') return 'Protocole, examen, résultat...';
+    if (this.auth.role() === 'ADMIN') return 'Activité, gestion, organisation...';
     return 'Posez votre question...';
   }
 

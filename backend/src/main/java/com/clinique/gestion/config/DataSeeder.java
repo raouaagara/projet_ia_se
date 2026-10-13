@@ -5,6 +5,7 @@ import com.clinique.gestion.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Component
+@Order(1)
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
@@ -57,14 +59,14 @@ public class DataSeeder implements CommandLineRunner {
         Patient patient = patientRepository.save(Patient.builder()
                 .numeroDossier("PAT-1001").nom("Dupont").prenom("Lucie")
                 .dateNaissance(LocalDate.of(1992, 3, 14)).sexe("F")
-                .telephone("0611223344").adresse("12 rue de la Santé, Paris")
+                .telephone("+216 22 112 233").adresse("12 rue Ibn Khaldoun, Tunis")
                 .groupeSanguin("A+").allergies("Pénicilline").antecedents("Asthme léger")
                 .utilisateur(uPat).build());
 
         patientRepository.save(Patient.builder()
                 .numeroDossier("PAT-1002").nom("Morel").prenom("Hugo")
                 .dateNaissance(LocalDate.of(1985, 11, 2)).sexe("M")
-                .telephone("0699887766").adresse("8 avenue Pasteur, Lyon")
+                .telephone("+216 98 776 655").adresse("8 avenue Farhat Hached, Sfax")
                 .groupeSanguin("O-").allergies("Aucune").antecedents("Hypertension")
                 .build());
 
@@ -153,7 +155,7 @@ public class DataSeeder implements CommandLineRunner {
         notificationRepository.save(Notification.builder()
                 .utilisateur(uPat)
                 .titre("Nouvelle facture")
-                .message("La facture N° FAC-DEMO01 (75,00 €) a été générée pour votre consultation.")
+                .message("La facture n° FAC-DEMO01 (75,000 DT) a été générée pour votre consultation.")
                 .type(TypeNotification.FACTURE_GENEREE)
                 .lue(true)
                 .referenceId(facture.getId())
@@ -163,7 +165,7 @@ public class DataSeeder implements CommandLineRunner {
         // Notification de démo pour le médecin
         notificationRepository.save(Notification.builder()
                 .utilisateur(uMed)
-                .titre("🗓️ Nouveau rendez-vous")
+                .titre("Nouveau rendez-vous")
                 .message("Le patient Lucie Dupont a pris un rendez-vous le "
                         + rdv.getDateHeure().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm"))
                         + " — Motif : Contrôle annuel.")
@@ -175,7 +177,7 @@ public class DataSeeder implements CommandLineRunner {
 
         notificationRepository.save(Notification.builder()
                 .utilisateur(uMed)
-                .titre("✅ RDV confirmé")
+                .titre("Rendez-vous confirmé")
                 .message("Vous avez confirmé le rendez-vous avec Lucie Dupont.")
                 .type(TypeNotification.RDV_CONFIRME)
                 .lue(false)

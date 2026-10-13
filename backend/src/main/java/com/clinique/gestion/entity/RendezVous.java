@@ -2,6 +2,8 @@ package com.clinique.gestion.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -33,9 +35,15 @@ public class RendezVous {
     private String motif;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 20)
     private StatutRendezVous statut;
 
     @Column(length = 255)
     private String notes;
+
+    /** Évite d'envoyer plusieurs fois le rappel 24 h avant (la tâche planifiée s'exécute toutes les heures). */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean rappelEnvoye = false;
 }

@@ -1,290 +1,264 @@
-# 🏥 MediCare — Plateforme de Gestion Clinique
+# MediCare — Plateforme de gestion clinique
 
-Application full-stack de gestion de clinique médicale.  
-**Backend** : Spring Boot 3.2 · **Frontend** : Angular 17 standalone · **BD** : MySQL
+Application full-stack de gestion d'une clinique médicale, organisée en six modules.
+
+**Backend** : Spring Boot 3.2 · Java 17 · Spring Security (JWT) · JPA/Hibernate
+**Frontend** : Angular 17 (composants standalone)
+**Base de données** : MySQL 8 (compatible MariaDB 10.6+)
 
 ---
 
-## 🚀 Démarrage rapide
+## Démarrage rapide
 
 ### Prérequis
-- Java 17+
-- Maven 3.8+
-- Node.js 18+ / npm
-- MySQL 8+
+- Java 17+ et Maven 3.8+
+- Node.js 18+ et npm
+- MySQL 8+ (la base `clinique_db` est créée automatiquement)
 
 ### Backend
 ```bash
 cd backend
-# Configurer application.properties (BDD + clé Groq)
 mvn spring-boot:run
-# Accessible sur http://localhost:8081
-# Swagger UI : http://localhost:8081/swagger-ui.html
+# API         : http://localhost:8081/api
+# Swagger UI  : http://localhost:8081/swagger-ui.html
 ```
 
 ### Frontend
 ```bash
 cd frontend
 npm install
-ng serve
-# Accessible sur http://localhost:4200
+npm start          # équivalent de ng serve
+# Application : http://localhost:4200
+```
+
+Au premier démarrage, le backend crée le schéma et charge un jeu de données de démonstration
+(patients, médecins, rendez-vous, examens, catalogue de médicaments, lots et fournisseurs).
+Les icônes (Font Awesome) sont intégrées au build : l'application fonctionne sans accès à un CDN.
+
+---
+
+## Configuration
+
+Toute la configuration sensible passe par des variables d'environnement ; les valeurs par défaut
+conviennent au développement local.
+
+| Variable | Rôle | Valeur par défaut |
+|----------|------|-------------------|
+| `DB_URL` | URL JDBC | `jdbc:mysql://localhost:3306/clinique_db?createDatabaseIfNotExist=true…` |
+| `DB_USERNAME` / `DB_PASSWORD` | Identifiants de la base | `root` / *(vide)* |
+| `APP_JWT_SECRET` | Secret de signature des jetons (≥ 32 caractères) | secret de développement — **à remplacer en production** |
+| `APP_CORS_ORIGINS` | Origines autorisées | `http://localhost:4200` |
+| `GROQ_API_KEY` | Clé de l'API Groq pour les fonctions IA | *(vide)* |
+| `GROQ_MODEL` | Modèle utilisé | `qwen/qwen3.8-27b` |
+
+Sans `GROQ_API_KEY`, toutes les fonctions IA restent disponibles grâce au moteur de règles local
+(voir module M5). La clé n'est jamais transmise au navigateur : seul le backend appelle le modèle.
+
+Exemple :
+```bash
+export APP_JWT_SECRET="une-longue-phrase-secrete-de-plus-de-32-caracteres"
+export GROQ_API_KEY="gsk_..."
+mvn spring-boot:run
 ```
 
 ---
 
-## 👤 Comptes de démo
+## Comptes de démonstration
 
 Mot de passe pour tous : **`password`**
 
 | Rôle | Email | Espace |
 |------|-------|--------|
-| Admin | admin@clinique.local | `/back` |
+| Administrateur | admin@clinique.local | `/back` |
 | Médecin | dr.martin@clinique.local | `/back` |
 | Secrétaire | secretaire@clinique.local | `/secretaire` |
 | Patient | patient.dupont@clinique.local | `/front` |
 | Laboratoire | labo@clinique.local | `/labo` |
+| Pharmacien | pharmacien@clinique.local | `/pharmacie` |
 
 ---
 
-## 📦 Architecture
+## Les six modules
+
+| Module | Périmètre | Espaces concernés |
+|--------|-----------|-------------------|
+| **M1 — Utilisateurs & Sécurité** | Authentification JWT, rôles, comptes, profils | tous |
+| **M2 — Rendez-vous & Planning** | Prise de RDV, plannings médecins, rappels automatiques | `/front`, `/back`, `/secretaire` |
+| **M3 — Dossier médical** | Patients, consultations, ordonnances structurées, examens de laboratoire | `/back`, `/labo`, `/front` |
+| **M4 — Facturation & Statistiques** | Factures, paiements, tableaux de bord | `/back`, `/secretaire`, `/front` |
+| **M5 — IA & Aide à la décision** | Pré-diagnostic, résumé de dossier, aide à l'interprétation, prévisions, assistant | `/front`, `/back` |
+| **M6 — Pharmacie & Stock** | Catalogue, lots, réceptions, délivrance FEFO, alertes de stock | `/pharmacie`, `/back` |
+
+Les modules sont reliés entre eux :
 
 ```
-clinique-medicale/
-├── backend/          Spring Boot 3.2.5 · Java 17 · MySQL
-│   └── src/main/java/com/clinique/gestion/
-│       ├── config/       DataSeeder, WebConfig, OpenApiConfig, GlobalExceptionHandler
-│       ├── controller/   14 REST controllers
-│       ├── dto/          Data Transfer Objects
-│       ├── entity/       12 entités JPA
-│       ├── repository/   Spring Data JPA
-│       ├── security/     JWT · JwtAuthFilter · CustomUserDetailsService
-│       └── service/      12 services métier
-└── frontend/         Angular 17 standalone
-    └── src/app/
-        ├── core/         AuthService · ApiService · authGuard · roleGuard · authInterceptor
-        ├── layouts/      BackLayout · FrontLayout · SecretaireLayout · LaboLayout
-        ├── pages/
-        │   ├── back/     14 composants back-office (Admin + Médecin)
-        │   ├── front/    6 composants espace patient
-        │   └── labo/     3 composants espace laboratoire
-        └── shared/       NotificationsListComponent · ChatbotComponent
+Médecin ── ordonnance structurée (médicaments du catalogue) ──► Pharmacie
+                                                               │ délivrance FEFO (lots)
+                                                               ├─► mouvement de stock
+                                                               ├─► facture du patient (M4)
+                                                               └─► notification patient
+Patient ── pré-diagnostic IA ──► spécialité + médecins ──► réservation pré-remplie (M2)
+Laboratoire ── résultat ──► notification ──► aide à l'interprétation IA (médecin)
 ```
 
 ---
 
-## 🔐 Sécurité & Rôles
+## Sécurité et rôles
 
-Authentification **JWT stateless** (JJWT 0.12.5). Token envoyé en header `Authorization: Bearer <token>`.
+- Authentification **JWT stateless** (JJWT 0.12.5), jeton envoyé dans `Authorization: Bearer <token>`.
+- `@PreAuthorize` sur chaque endpoint, plus des **contrôles de propriété** : un patient ne lit que ses
+  propres RDV, factures, notifications et profil.
+- Jeton absent, expiré ou falsifié → **401** ; rôle insuffisant → **403**.
+- Le rôle utilisé par l'assistant est toujours celui du jeton, jamais une valeur envoyée par le client.
 
-| Rôle | Espace | Accès |
-|------|--------|-------|
-| `ADMIN` | `/back` | Tout — utilisateurs, médecins, stats, factures, labos |
-| `MEDECIN` | `/back` | Ses RDV, consultations, patients, examens, ordonnances |
-| `SECRETAIRE` | `/secretaire` | RDV, patients, factures, consultations, planning |
-| `PATIENT` | `/front` | Ses RDV, dossier, historique, examens, factures, notifications |
-| `LABO` | `/labo` | Examens à traiter, saisie des résultats, notifications |
-
----
-
-## 📋 Modules fonctionnels
-
-### 1. Rendez-vous
-
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/api/rendez-vous` | GET | Liste complète |
-| `/api/rendez-vous/patient/{id}` | GET | RDV d'un patient |
-| `/api/rendez-vous/medecin/{id}` | GET | RDV d'un médecin |
-| `/api/rendez-vous` | POST | Créer un RDV → notifie médecin + patient |
-| `/api/rendez-vous/{id}` | PUT | Modifier (changement statut → notifie) |
-| `/api/rendez-vous/{id}` | DELETE | Supprimer |
-
-**Statuts** : `PLANIFIE` · `CONFIRME` · `ANNULE` · `TERMINE`
+| Rôle | Espace | Accès principal |
+|------|--------|-----------------|
+| `ADMIN` | `/back` | Tout : utilisateurs, médecins, statistiques, factures, IA, pharmacie (lecture) |
+| `MEDECIN` | `/back` | Ses RDV, consultations, patients, examens, ordonnances, analyses IA |
+| `SECRETAIRE` | `/secretaire` | RDV, patients, plannings, consultations, factures |
+| `PATIENT` | `/front` | Ses RDV, dossier, historique, pré-diagnostic, examens, factures |
+| `LABO` | `/labo` | Examens à traiter, saisie et publication des résultats |
+| `PHARMACIEN` | `/pharmacie` | Délivrance, stock, réceptions, catalogue, fournisseurs |
 
 ---
 
-### 2. Consultations & Ordonnances
+## API — principaux endpoints
 
+### Rendez-vous (M2)
 | Endpoint | Méthode | Description |
 |----------|---------|-------------|
-| `/api/consultations` | GET/POST/PUT/DELETE | CRUD consultation |
-| `/api/consultations/patient/{id}` | GET | Consultations d'un patient |
-| `/api/consultations/medecin/{id}` | GET | Consultations d'un médecin |
-| `/api/ordonnances` | GET/POST/PUT/DELETE | CRUD ordonnance |
-| `/api/ordonnances/patient/{id}` | GET | Ordonnances d'un patient |
+| `/api/rendez-vous` | GET / POST | Liste, création (notifie médecin et patient) |
+| `/api/rendez-vous/patient/{id}` · `/medecin/{id}` | GET | RDV d'un patient / d'un médecin |
+| `/api/rendez-vous/{id}` | PUT / DELETE | Modification (changement de statut notifié), suppression |
 
----
+Statuts : `PLANIFIE` · `CONFIRME` · `ANNULE` · `TERMINE`.
+Rappel automatique envoyé une seule fois, 24 h avant le rendez-vous (tâche horaire).
 
-### 3. Examens & Laboratoire
-
+### Dossier médical (M3)
 | Endpoint | Méthode | Description |
 |----------|---------|-------------|
-| `/api/examens` | GET/POST/PUT/DELETE | CRUD examens |
-| `/api/examens/patient/{id}` | GET | Examens d'un patient |
-| `/api/examens/medecin/{id}` | GET | Examens d'un médecin |
-| `/api/examens/{id}/resultat` | PUT | Saisir résultat → notifie patient |
-| `/api/labo/resultats` | POST | Publication résultat depuis espace labo |
+| `/api/consultations` | CRUD | Consultations |
+| `/api/ordonnances` | GET / POST / PUT / DELETE | Ordonnances structurées (lignes : médicament, posologie, durée, quantité) |
+| `/api/ordonnances/patient/{id}` | GET | Ordonnances d'un patient, avec leur statut de délivrance |
+| `/api/examens` | CRUD | Examens de laboratoire |
+| `/api/examens/{id}/resultat` | PUT | Saisie d'un résultat (notifie le patient et le médecin) |
 
-**Statuts** : `DEMANDE` · `EN_COURS` · `RESULTAT_DISPONIBLE` · `ANNULE`
-
----
-
-### 4. Facturation
-
+### Facturation (M4)
 | Endpoint | Méthode | Description |
 |----------|---------|-------------|
-| `/api/factures` | GET/POST/PUT/DELETE | CRUD factures |
+| `/api/factures` | CRUD | Factures et lignes de facture |
 | `/api/factures/patient/{id}` | GET | Factures d'un patient |
-| `/api/factures/{id}/paiement` | PUT | Enregistrer paiement |
-| `/api/factures/stats` | GET | Statistiques financières |
+| `/api/factures/{id}/paiement` | PUT | Enregistrement d'un paiement |
+| `/api/statistiques`, `/api/statistiques-detail` | GET | Indicateurs (personnel uniquement) |
 
-**Statuts** : `EN_ATTENTE` · `PARTIELLEMENT_PAYE` · `PAYE` · `REMBOURSE` · `ANNULE`
+Montants en **dinars tunisiens (DT)**, trois décimales.
 
-> Création d'une facture → notification automatique au patient (`FACTURE_GENEREE`)
+### IA & aide à la décision (M5)
+| Endpoint | Méthode | Rôle | Description |
+|----------|---------|------|-------------|
+| `/api/ia/triage` | POST | Patient | Pré-diagnostic : niveau d'urgence, spécialité, médecins disponibles |
+| `/api/ia/triages/moi` | GET | Patient | Historique des pré-diagnostics |
+| `/api/ia/resume-dossier/{patientId}` | POST | Médecin, Admin | Résumé structuré du dossier |
+| `/api/ia/interpretation/{examenId}` | POST | Médecin, Admin | Aide à l'interprétation d'un résultat |
+| `/api/ia/analyses/{id}/validation` | PUT | Médecin | Validation humaine d'une analyse |
+| `/api/ia/previsions` | GET | Admin | Charge prévue sur 7 jours, taux d'annulation, créneaux chargés, couverture du stock |
+| `/api/ia/statut` · `/api/ia/journal` | GET | Admin | État du fournisseur IA et journal des appels |
+| `/api/chatbot` | POST | Tous | Assistant MediAssist (réponses adaptées au rôle du jeton) |
 
----
+Garde-fous :
+- les données envoyées au modèle sont **pseudonymisées** (ni nom, ni numéro de dossier) ;
+- délai maximal de 15 s, puis **repli automatique** sur le moteur de règles local ;
+- chaque appel est **journalisé** (fonction, rôle, source, durée, succès) ;
+- les analyses restent des **suggestions** : le médecin les valide, et les urgences vitales renvoient
+  vers le **190** (SAMU) et le **198** (Protection civile).
 
-### 5. Notifications
-
+### Pharmacie & stock (M6)
 | Endpoint | Méthode | Description |
 |----------|---------|-------------|
-| `/api/notifications/utilisateur/{uid}` | GET | Toutes les notifs |
-| `/api/notifications/utilisateur/{uid}/non-lues` | GET | Notifs non lues |
-| `/api/notifications/utilisateur/{uid}/count` | GET | Compteur non lues |
-| `/api/notifications/{id}/lire` | PUT | Marquer une notif lue |
-| `/api/notifications/utilisateur/{uid}/lire-tout` | PUT | Tout marquer lu |
-| `/api/notifications/{id}` | DELETE | Supprimer une notif |
+| `/api/pharmacie/tableau-de-bord` | GET | Indicateurs, alertes, ordonnances en attente |
+| `/api/pharmacie/medicaments` | CRUD | Catalogue (lecture ouverte aux médecins pour la prescription) |
+| `/api/pharmacie/fournisseurs` | CRUD | Fournisseurs |
+| `/api/pharmacie/stock` | GET | Stock par médicament et par lot |
+| `/api/pharmacie/receptions` | POST | Réception d'un lot (n° de lot, péremption, quantité, prix) |
+| `/api/pharmacie/ajustements` | POST | Ajustement d'inventaire motivé |
+| `/api/pharmacie/lots-perimes/retrait` | POST | Retrait des lots périmés |
+| `/api/pharmacie/mouvements` | GET | Traçabilité de tous les mouvements |
+| `/api/pharmacie/alertes` | GET | Ruptures, stocks bas, péremptions à moins de 30 jours |
+| `/api/pharmacie/ordonnances` | GET | Ordonnances à délivrer |
+| `/api/pharmacie/delivrances` | POST / GET | Délivrance totale ou partielle, historique |
 
-**Types** : `RAPPEL_RDV` · `RDV_CONFIRME` · `RDV_ANNULE` · `RESULTAT_DISPONIBLE` · `NOUVELLE_PRESCRIPTION` · `FACTURE_GENEREE` · `INFORMATION`
+La délivrance prélève les lots selon la règle **FEFO** (premier périmé, premier sorti), sous verrou
+pessimiste et dans une seule transaction : stock, bon de délivrance, statut de l'ordonnance et
+facture du patient restent cohérents. Une tâche quotidienne (7 h) notifie la pharmacie des alertes.
 
-**Déclenchements automatiques** :
-- Création RDV → notifie médecin (`RAPPEL_RDV`) + patient (`RDV_CONFIRME`)
-- Confirmation RDV → notifie les deux (`RDV_CONFIRME`)
-- Annulation RDV → notifie les deux (`RDV_ANNULE`)
-- Résultat examen disponible → notifie patient (`RESULTAT_DISPONIBLE`)
-- Nouvelle facture → notifie patient (`FACTURE_GENEREE`)
-- **Rappels automatiques** : `RappelRdvService` — cron horaire, rappels 24h avant RDV
-
-**Badge temps réel** : polling toutes les 15 secondes dans les layouts.
-
----
-
-### 6. Statistiques & Dashboard
-
+### Notifications
 | Endpoint | Méthode | Description |
 |----------|---------|-------------|
-| `/api/statistiques` | GET | KPIs globaux |
-| `/api/statistiques-detail` | GET | Analyse complète |
+| `/api/notifications/utilisateur/{uid}` | GET | Notifications de l'utilisateur connecté |
+| `/api/notifications/utilisateur/{uid}/count` | GET | Compteur des non lues |
+| `/api/notifications/{id}/lire` · `/utilisateur/{uid}/lire-tout` | PUT | Marquer comme lu |
 
-Dashboard adaptatif selon le rôle : KPIs différents pour Admin, Médecin et Secrétaire.
-
----
-
-## 🖥️ Pages Frontend
-
-### Espace Admin / Médecin (`/back`)
-| Route | Composant | Rôles |
-|-------|-----------|-------|
-| `/back/dashboard` | DashboardComponent | Admin, Médecin |
-| `/back/patients` | PatientsComponent | Admin, Médecin |
-| `/back/medecins` | MedecinsComponent | Admin |
-| `/back/rendez-vous` | RendezVousBackComponent | Admin, Médecin |
-| `/back/plannings` | PlanningsComponent | Admin, Médecin |
-| `/back/consultations` | ConsultationsComponent | Admin, Médecin |
-| `/back/examens` | ExamensComponent | Admin, Médecin |
-| `/back/laboratoire` | LaboratoireComponent | Admin |
-| `/back/factures` | FacturesComponent | Admin |
-| `/back/notifications` | NotificationsComponent | Admin, Médecin |
-| `/back/statistiques-detail` | StatistiquesDetailComponent | Admin |
-| `/back/utilisateurs` | UtilisateursComponent | Admin |
-| `/back/profil` | ProfilComponent | Admin, Médecin |
-
-### Espace Secrétaire (`/secretaire`)
-| Route | Description |
-|-------|-------------|
-| `/secretaire/dashboard` | Tableau de bord |
-| `/secretaire/rendez-vous` | Gestion des RDV |
-| `/secretaire/patients` | Liste patients |
-| `/secretaire/consultations` | Consultations |
-| `/secretaire/factures` | Facturation |
-| `/secretaire/notifications` | Notifications |
-
-### Espace Patient (`/front`)
-| Route | Description |
-|-------|-------------|
-| `/front/rdv` | Prise de rendez-vous |
-| `/front/dossier` | Dossier médical |
-| `/front/historique` | Historique consultations |
-| `/front/examens` | Résultats d'examens |
-| `/front/factures` | Mes factures |
-| `/front/notifications` | Mes notifications |
-
-### Espace Laboratoire (`/labo`)
-| Route | Description |
-|-------|-------------|
-| `/labo/examens` | Examens à traiter |
-| `/labo/resultats` | Saisie des résultats |
-| `/labo/notifications` | Notifications |
+Les badges sont rafraîchis toutes les 15 à 30 secondes selon l'espace.
 
 ---
 
-## ⚙️ Configuration backend
+## Pages frontend
 
-Fichier : `backend/src/main/resources/application.properties`
+| Espace | Routes |
+|--------|--------|
+| Public | `/`, `/login`, `/register` |
+| Administration / Médecin (`/back`) | `dashboard`, `patients`, `medecins`*, `plannings`, `rendez-vous`, `consultations`, `examens`, `ordonnances`, `laboratoire`, `factures`*, `notifications`, `statistiques`*, `statistiques-detail`*, `ia`*, `utilisateurs`*, `profil` |
+| Secrétariat (`/secretaire`) | `dashboard`, `patients`, `rendez-vous`, `plannings`, `consultations`, `factures`, `notifications`, `profil` |
+| Patient (`/front`) | `rdv`, `dossier`, `historique`, `triage`, `examens`, `factures`, `notifications` |
+| Laboratoire (`/labo`) | `examens`, `resultats`, `notifications` |
+| Pharmacie (`/pharmacie`) | `tableau-de-bord`, `ordonnances`, `stock`, `receptions`, `catalogue`, `notifications` |
 
-```properties
-server.port=8081
+\* réservé à l'administrateur.
 
-spring.datasource.url=jdbc:mysql://localhost:3306/clinique_db?createDatabaseIfNotExist=true
-spring.datasource.username=root
-spring.datasource.password=
+---
 
-spring.jpa.hibernate.ddl-auto=update
+## Architecture
 
-app.jwt.secret=VotreSecretJwtMinimum32Caracteres
-app.jwt.expiration-ms=604800000
+```
+projet_ia_se/
+├── backend/                     Spring Boot 3.2.5 · Java 17
+│   └── src/main/java/com/clinique/gestion/
+│       ├── config/              Seeders, migration de schéma, devise, gestion des erreurs
+│       ├── controller/          Contrôleurs REST
+│       ├── dto/                 DTO (dont dto/ia et dto/pharmacie)
+│       ├── entity/              Entités JPA
+│       ├── repository/          Spring Data JPA
+│       ├── security/            JWT, filtre, utilisateur courant
+│       └── service/             Services métier, client IA, tâches planifiées
+├── frontend/                    Angular 17 standalone
+│   └── src/app/
+│       ├── core/                Services API, auth, IA, pharmacie, guards, intercepteur
+│       ├── layouts/             Un layout par espace (back, front, secrétaire, labo, pharmacie)
+│       ├── pages/               back · front · labo · pharmacie · home · login · register
+│       └── shared/              Chatbot, analyse IA, graphique, pipe montant, notifications
+└── docs/rapport/                Rapport des six modules et prompts par module (PDF)
+```
 
-app.cors.allowed-origins=http://localhost:4200
+### Modèle de données (extrait)
 
-app.ai.api-url=https://api.groq.com/openai/v1/chat/completions
-app.ai.api-key=YOUR_GROQ_API_KEY
-app.ai.model=qwen/qwen3.8-27b
+```
+Utilisateur 1 ── 0..1 Medecin | Patient          Utilisateur 1 ── * Notification
+Patient     1 ── *    RendezVous, Consultation, Facture, ExamenLaboratoire, TriageSymptomes
+Consultation 1 ── *   Ordonnance 1 ── * LigneOrdonnance * ── 1 Medicament
+Medicament  1 ── *    LotMedicament * ── 0..1 Fournisseur
+Ordonnance  1 ── *    Delivrance 1 ── * LigneDelivrance * ── 1 LotMedicament
+LotMedicament 1 ── *  MouvementStock
+Facture     1 ── *    LigneFacture
+AnalyseIA   * ── 1    Patient (résumé) | ExamenLaboratoire (interprétation)
+JournalIA             trace de chaque appel IA
 ```
 
 ---
 
-## 🤖 Chatbot IA — MediAssist
+## Notes techniques
 
-- **Modèle** : Qwen 3.8-27B via [Groq API](https://console.groq.com)
-- **Appel hybride** : direct depuis Angular avec fallback sur `/api/chatbot`
-- **Prompt adaptatif** selon le rôle connecté (Admin, Médecin, Patient…)
-- **Contexte enrichi** : statistiques temps réel injectées dans le prompt système
-
----
-
-## 🗄️ Modèle de données
-
-```
-Utilisateur (1) ──── (0..1) Medecin
-Utilisateur (1) ──── (0..1) Patient
-Utilisateur (1) ──── (*)    Notification
-Patient     (1) ──── (*)    RendezVous
-Patient     (1) ──── (*)    Consultation
-Patient     (1) ──── (*)    Facture
-Patient     (1) ──── (*)    ExamenLaboratoire
-Medecin     (1) ──── (*)    RendezVous
-Medecin     (1) ──── (*)    Consultation
-RendezVous  (1) ──── (0..1) Consultation
-Consultation(1) ──── (*)    Ordonnance
-Facture     (1) ──── (*)    LigneFacture
-```
-
----
-
-## 📝 Notes techniques
-
-- **DataSeeder** : peuple la BD au premier démarrage (données de démo)
-- **`ddl-auto=update`** : Hibernate crée/met à jour le schéma automatiquement
-- **`@EnableMethodSecurity`** + `@PreAuthorize` sur chaque endpoint
-- **Polling notifications** : toutes les 15 s dans les layouts
-- **Popup temps réel** : dans `FrontLayoutComponent` — détecte les nouvelles notifs et affiche une popup animée
+- `ddl-auto=update` : Hibernate maintient le schéma. Les énumérations sont stockées en `VARCHAR` et
+  les textes longs en `TEXT`, ce qui permet d'ajouter des valeurs (rôle `PHARMACIEN`, nouveaux types
+  de notification) sans migration manuelle sur une base existante.
+- `open-in-view=false` : les lectures de collections se font dans des transactions en lecture seule.
+- La devise est centralisée côté backend (`config/Devise.java`) et côté frontend (`shared/montant.pipe.ts`).

@@ -19,6 +19,15 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final com.clinique.gestion.security.UtilisateurCourant utilisateurCourant;
+
+    /** Seul le destinataire (ou un administrateur) peut lire ou modifier ses notifications. */
+    public void verifierProprietaire(Long utilisateurId) {
+        com.clinique.gestion.entity.Utilisateur u = utilisateurCourant.requis();
+        if (!u.getId().equals(utilisateurId) && u.getRole() != com.clinique.gestion.entity.Role.ADMIN) {
+            throw new org.springframework.security.access.AccessDeniedException("Notifications d'un autre utilisateur");
+        }
+    }
 
     public List<NotificationDto> findByUtilisateur(Long uid) {
         return notificationRepository.findByUtilisateurIdOrderByDateCreationDesc(uid)
@@ -36,7 +45,11 @@ public class NotificationService {
 
     @Transactional
     public void marquerLue(Long id) {
-        notificationRepository.findById(id).ifPresent(n -> { n.setLue(true); notificationRepository.save(n); });
+        notificationRepository.findById(id).ifPresent(n -> {
+            verifierProprietaire(n.getUtilisateur().getId());
+            n.setLue(true);
+            notificationRepository.save(n);
+        });
     }
 
     @Transactional
@@ -46,7 +59,10 @@ public class NotificationService {
 
     @Transactional
     public void supprimer(Long id) {
-        notificationRepository.deleteById(id);
+        notificationRepository.findById(id).ifPresent(n -> {
+            verifierProprietaire(n.getUtilisateur().getId());
+            notificationRepository.delete(n);
+        });
     }
 
     @Transactional
