@@ -149,6 +149,7 @@ Rappel automatique envoyé une seule fois, 24 h avant le rendez-vous (tâche hor
 | `/api/factures` | CRUD | Factures et lignes de facture |
 | `/api/factures/patient/{id}` | GET | Factures d'un patient |
 | `/api/factures/{id}/pdf` | GET | Facture au format PDF (le patient ne télécharge que les siennes) |
+| `/api/pdf/ordonnance/{id}` · `/api/pdf/examen/{id}` | GET | Ordonnance ou résultat d'examen au format PDF (mêmes contrôles de propriété) |
 | `/api/factures/{id}/paiement` | PUT | Enregistrement d'un paiement |
 | `/api/statistiques`, `/api/statistiques-detail` | GET | Indicateurs (personnel uniquement) |
 
@@ -165,6 +166,7 @@ Montants en **dinars tunisiens (DT)**, trois décimales.
 | `/api/ia/previsions` | GET | Admin | Charge prévue sur 7 jours, taux d'annulation, créneaux chargés, couverture du stock |
 | `/api/ia/statut` · `/api/ia/journal` | GET | Admin | État du fournisseur IA et journal des appels |
 | `/api/chatbot` | POST | Tous | Assistant MediAssist (réponses adaptées au rôle du jeton) |
+| `/api/chatbot/historique/{uid}` · `/session/{id}` | GET / DELETE | Titulaire, Admin | Historique des conversations (utilisateurs connectés) |
 
 Garde-fous :
 - les données envoyées au modèle sont **pseudonymisées** (ni nom, ni numéro de dossier) ;
