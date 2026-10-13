@@ -23,7 +23,7 @@ import { AlerteStock, Delivrance, Ordonnance, PharmacieService, TableauBordPharm
       <div class="mc-loading" *ngIf="!t && !erreur"><i class="fa fa-spinner fa-spin"></i> Chargement…</div>
 
       <ng-container *ngIf="t">
-        <div class="mc-kpis">
+        <div class="mc-kpis pd-kpis">
           <div class="mc-kpi"><div class="mc-kpi-icon tone-teal"><i class="fa fa-file-prescription"></i></div>
             <div><div class="mc-kpi-v">{{ t.ordonnancesADelivrer }}</div><div class="mc-kpi-l">Ordonnances à délivrer</div></div></div>
           <div class="mc-kpi"><div class="mc-kpi-icon tone-green"><i class="fa fa-hand-holding-medical"></i></div>
@@ -31,7 +31,7 @@ import { AlerteStock, Delivrance, Ordonnance, PharmacieService, TableauBordPharm
           <div class="mc-kpi"><div class="mc-kpi-icon tone-blue"><i class="fa fa-capsules"></i></div>
             <div><div class="mc-kpi-v">{{ t.unitesEnStock | number:'1.0-0' }}</div><div class="mc-kpi-l">Unités en stock · {{ t.medicamentsActifs }} médicaments</div></div></div>
           <div class="mc-kpi"><div class="mc-kpi-icon tone-violet"><i class="fa fa-coins"></i></div>
-            <div><div class="mc-kpi-v">{{ t.valeurStock | montant:0 }}</div><div class="mc-kpi-l">Valeur du stock (prix public)</div></div></div>
+            <div><div class="mc-kpi-v">{{ t.valeurStock | montant }}</div><div class="mc-kpi-l">Valeur du stock (prix public)</div></div></div>
           <div class="mc-kpi"><div class="mc-kpi-icon" [ngClass]="t.ruptures + t.lotsPerimes > 0 ? 'tone-red' : 'tone-gray'"><i class="fa fa-triangle-exclamation"></i></div>
             <div><div class="mc-kpi-v">{{ t.ruptures + t.lotsPerimes }}</div><div class="mc-kpi-l">Alertes critiques</div></div></div>
           <div class="mc-kpi"><div class="mc-kpi-icon" [ngClass]="t.stocksBas + t.peremptionsProches > 0 ? 'tone-orange' : 'tone-gray'"><i class="fa fa-hourglass-half"></i></div>
@@ -96,7 +96,13 @@ import { AlerteStock, Delivrance, Ordonnance, PharmacieService, TableauBordPharm
       </ng-container>
     </div>
   `,
-  styles: [`.pd-link { text-decoration:none; color:inherit; } .pd-link:hover { background:var(--bg); }`]
+  styles: [`
+    .pd-link { text-decoration:none; color:inherit; } .pd-link:hover { background:var(--bg); }
+    /* Six indicateurs : 3 × 2 pour laisser la place aux montants en DT (trois décimales). */
+    .pd-kpis { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 900px) { .pd-kpis { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .pd-kpis { grid-template-columns: 1fr; } }
+  `]
 })
 export class PharmacieDashboardComponent implements OnInit {
   t?: TableauBordPharmacie;

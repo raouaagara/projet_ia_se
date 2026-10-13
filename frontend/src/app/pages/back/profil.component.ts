@@ -76,10 +76,10 @@ import { catchError } from 'rxjs/operators';
                   <label>Faculté / École de médecine</label>
                   <select formControlName="faculte" (change)="onFaculteChange($event)">
                     <option value="">— Choisir —</option>
-                    <optgroup label="🇹🇳 Tunisie">
+                    <optgroup label="Tunisie">
                       <option *ngFor="let f of facultesTunisie" [value]="f">{{ f }}</option>
                     </optgroup>
-                    <optgroup label="🇫🇷 France">
+                    <optgroup label="France">
                       <option *ngFor="let f of facultesFrance" [value]="f">{{ f }}</option>
                     </optgroup>
                     <option value="Autre">Autre (saisir manuellement)</option>

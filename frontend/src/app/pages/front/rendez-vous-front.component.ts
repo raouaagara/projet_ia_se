@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, ElementRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf, SlicePipe } from '@angular/common';
+import { InitialesPipe } from '../../shared/initiales.pipe';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
@@ -11,7 +12,7 @@ import { catchError } from 'rxjs/operators';
 @Component({
   selector: 'app-rdv-front',
   standalone: true,
-  imports: [ReactiveFormsModule, NgFor, NgIf, SlicePipe, MedecinWidgetComponent],
+  imports: [ReactiveFormsModule, NgFor, NgIf, SlicePipe, MedecinWidgetComponent, InitialesPipe],
   template: `
     <div class="p-rdv">
 
@@ -128,7 +129,7 @@ import { catchError } from 'rxjs/operators';
                 <i class="fa fa-clock"></i> {{ r.dateHeure | slice:11:16 }}
               </div>
               <div class="p-rdv-doc">
-                <div class="p-rdv-doc-av">{{ r.medecinNom?.charAt(4) }}</div>
+                <div class="p-rdv-doc-av">{{ r.medecinNom | initiales }}</div>
                 {{ r.medecinNom }}
               </div>
               <div class="p-rdv-motif" *ngIf="r.motif">

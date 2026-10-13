@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit, ElementRef } from '@angular/core';
 import { NgFor, NgIf, SlicePipe } from '@angular/common';
+import { InitialesPipe } from '../../shared/initiales.pipe';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { of } from 'rxjs';
@@ -8,7 +9,7 @@ import { catchError } from 'rxjs/operators';
 @Component({
   selector: 'app-historique',
   standalone: true,
-  imports: [NgFor, NgIf, SlicePipe],
+  imports: [NgFor, NgIf, SlicePipe, InitialesPipe],
   template: `
     <div class="hist">
 
@@ -94,7 +95,7 @@ import { catchError } from 'rxjs/operators';
                 <span>{{ c.diagnostic }}</span>
               </div>
               <div class="hc-doc">
-                <div class="hc-doc-av">{{ c.medecinNom?.charAt(3) }}</div>
+                <div class="hc-doc-av">{{ c.medecinNom | initiales }}</div>
                 {{ c.medecinNom }}
               </div>
             </div>

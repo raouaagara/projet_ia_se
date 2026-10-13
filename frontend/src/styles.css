@@ -514,6 +514,8 @@ button, input, select, textarea { font-family: inherit; }
 
 /* Keep old label/input for backward compat */
 label { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+/* L'astérisque des champs obligatoires reste sur la ligne du libellé. */
+label:has(> .req) { display: block; }
 input, select, textarea {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1088,7 +1090,8 @@ tbody tr:last-child td { border-bottom: none; }
 .mc-field input:focus, .mc-field select:focus, .mc-field textarea:focus { border-color: var(--mc-accent, var(--primary)); box-shadow: 0 0 0 3px rgba(15, 108, 189, .15); }
 .mc-field .req { color: #dc2626; }
 .mc-field-hint { font-size: 12px; color: var(--text-muted); }
-.mc-check { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text); cursor: pointer; }
+.mc-check { display: flex; flex-direction: row; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text); cursor: pointer; }
+.mc-check input { width: auto; flex: none; margin: 0; }
 .mc-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; align-items: center; }
 
 .mc-alert { padding: 12px 14px; border-radius: 12px; font-size: 13.5px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; }

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NgFor, NgIf, DatePipe } from '@angular/common';
+import { InitialesPipe } from '../../shared/initiales.pipe';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
@@ -7,7 +8,7 @@ import { AuthService } from '../../core/auth.service';
 @Component({
   selector: 'app-labo-examens',
   standalone: true,
-  imports: [NgFor, NgIf, DatePipe, ReactiveFormsModule],
+  imports: [NgFor, NgIf, DatePipe, ReactiveFormsModule, InitialesPipe],
   template: `
     <div class="le-page">
 
@@ -62,12 +63,12 @@ import { AuthService } from '../../core/auth.service';
             </div>
             <div class="le-row2">
               <div class="le-person patient">
-                <div class="le-av green">{{ e.patientNom?.charAt(0) }}</div>
+                <div class="le-av green">{{ e.patientNom | initiales }}</div>
                 <div><small>Patient</small><span>{{ e.patientNom }}</span></div>
               </div>
               <i class="fa fa-arrow-right" style="color:#d1d5db"></i>
               <div class="le-person medecin">
-                <div class="le-av blue">{{ e.medecinNom?.charAt(3) }}</div>
+                <div class="le-av blue">{{ e.medecinNom | initiales }}</div>
                 <div><small>Prescripteur</small><span>{{ e.medecinNom }}</span></div>
               </div>
             </div>
@@ -304,7 +305,7 @@ import { AuthService } from '../../core/auth.service';
       background:linear-gradient(135deg,#fffbeb,#fef3c7);
       border:1.5px solid #fde68a; border-radius:12px; padding:14px 16px; }
     .le-notif-warn i { color:#f59e0b; font-size:18px; flex-shrink:0; margin-top:2px; }
-    .le-notif-warn strong { display:block; font-size:13px; color:#854d0e; margin-bottom:4px; }
+    .le-notif-warn > div > strong { display:block; font-size:13px; color:#854d0e; margin-bottom:4px; }
     .le-notif-warn p { font-size:12.5px; color:#92400e; margin:0; line-height:1.5; }
 
     .le-modal-actions { display:flex; justify-content:flex-end; gap:10px;

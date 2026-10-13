@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf, DatePipe } from '@angular/common';
+import { InitialesPipe } from '../../shared/initiales.pipe';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
@@ -9,7 +10,7 @@ import { catchError, of } from 'rxjs';
 @Component({
   selector: 'app-laboratoire',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, NgFor, NgIf, DatePipe],
+  imports: [ReactiveFormsModule, FormsModule, NgFor, NgIf, DatePipe, InitialesPipe],
   template: `
     <div class="lab-page">
 
@@ -218,7 +219,7 @@ import { catchError, of } from 'rxjs';
             <div class="lab-item-row2">
               <div class="lab-item-people">
                 <div class="lab-person">
-                  <div class="lab-person-av patient-av">{{ e.patientNom?.charAt(0) }}</div>
+                  <div class="lab-person-av patient-av">{{ e.patientNom | initiales }}</div>
                   <div>
                     <span class="lab-person-role">Patient</span>
                     <span class="lab-person-name">{{ e.patientNom }}</span>
@@ -226,7 +227,7 @@ import { catchError, of } from 'rxjs';
                 </div>
                 <div class="lab-person-sep">→</div>
                 <div class="lab-person">
-                  <div class="lab-person-av medecin-av">{{ e.medecinNom?.charAt(4) }}</div>
+                  <div class="lab-person-av medecin-av">{{ e.medecinNom | initiales }}</div>
                   <div>
                     <span class="lab-person-role">Médecin prescripteur</span>
                     <span class="lab-person-name">{{ e.medecinNom }}</span>
@@ -339,7 +340,7 @@ import { catchError, of } from 'rxjs';
               <div>
                 <strong>Notification automatique</strong>
                 <p>En validant ce résultat, une notification sera envoyée automatiquement
-                   au <strong>patient</strong> ({{ selectedExamen?.patientNom }}) ET
+                   au <strong>patient</strong> ({{ selectedExamen?.patientNom }}) et
                    au <strong>médecin prescripteur</strong> ({{ selectedExamen?.medecinNom }}).</p>
               </div>
             </div>
@@ -594,7 +595,7 @@ import { catchError, of } from 'rxjs';
       border:1.5px solid #fde68a; border-radius:12px; padding:14px 16px;
     }
     .lab-notif-warn i { color:#f59e0b; font-size:18px; flex-shrink:0; margin-top:2px; }
-    .lab-notif-warn strong { display:block; font-size:13.5px; color:#854d0e; margin-bottom:4px; }
+    .lab-notif-warn > div > strong { display:block; font-size:13.5px; color:#854d0e; margin-bottom:4px; }
     .lab-notif-warn p { font-size:13px; color:#92400e; margin:0; line-height:1.5; }
 
     /* ── Boutons ────────────────────────────────────────────────── */

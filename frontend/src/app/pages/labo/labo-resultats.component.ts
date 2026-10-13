@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { NgFor, NgIf, DatePipe } from '@angular/common';
+import { InitialesPipe } from '../../shared/initiales.pipe';
 import { ApiService } from '../../core/api.service';
 
 @Component({
   selector: 'app-labo-resultats',
   standalone: true,
-  imports: [NgFor, NgIf, DatePipe],
+  imports: [NgFor, NgIf, DatePipe, InitialesPipe],
   template: `
     <div class="lr-page">
 
@@ -27,12 +28,12 @@ import { ApiService } from '../../core/api.service';
           </div>
           <div class="lr-people">
             <div class="lr-person">
-              <div class="lr-av green">{{ e.patientNom?.charAt(0) }}</div>
+              <div class="lr-av green">{{ e.patientNom | initiales }}</div>
               <div><small>Patient</small><span>{{ e.patientNom }}</span></div>
             </div>
             <div class="lr-sep">→</div>
             <div class="lr-person">
-              <div class="lr-av blue">{{ e.medecinNom?.charAt(3) }}</div>
+              <div class="lr-av blue">{{ e.medecinNom | initiales }}</div>
               <div><small>Médecin</small><span>{{ e.medecinNom }}</span></div>
             </div>
           </div>

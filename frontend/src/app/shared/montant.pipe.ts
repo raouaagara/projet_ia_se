@@ -5,10 +5,10 @@ export const DEVISE = { symbole: 'DT', decimales: 3 };
 
 export function formatMontant(valeur: number | null | undefined, decimales: number = DEVISE.decimales): string {
   const n = Number(valeur ?? 0);
-  return n.toLocaleString('fr-FR', { minimumFractionDigits: decimales, maximumFractionDigits: decimales }) + ' ' + DEVISE.symbole;
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: decimales, maximumFractionDigits: decimales }) + '\u00A0' + DEVISE.symbole;
 }
 
-/** Affiche un montant au format français dans la devise de la clinique (ex. « 1 234,500 DT »). */
+/** Affiche un montant au format français dans la devise de la clinique (ex. « 1 234,500 DT », espace insécable avant DT). */
 @Pipe({ name: 'montant', standalone: true })
 export class MontantPipe implements PipeTransform {
   transform(valeur: number | null | undefined, decimales: number = DEVISE.decimales): string {

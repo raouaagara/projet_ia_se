@@ -29,7 +29,7 @@ import { Delivrance, Ordonnance, PharmacieService } from '../../core/pharmacie.s
         <section class="mc-panel">
           <div class="mc-panel-head">
             <div class="mc-search"><i class="fa fa-magnifying-glass"></i>
-              <input [(ngModel)]="recherche" placeholder="Patient, n° de dossier ou n° d'ordonnance" aria-label="Rechercher une ordonnance">
+              <input [(ngModel)]="recherche" placeholder="Patient, dossier ou n°" aria-label="Rechercher une ordonnance par patient, numéro de dossier ou numéro d'ordonnance">
             </div>
           </div>
           <div class="mc-loading" *ngIf="chargement"><i class="fa fa-spinner fa-spin"></i> Chargement…</div>

@@ -38,8 +38,8 @@ import { OrdonnancesComponent } from './pages/back/ordonnances.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
-  { path: 'login',    component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
+  { path: 'login',    component: LoginComponent, title: 'Connexion' },
+  { path: 'register', component: RegisterComponent, title: 'Créer un compte' },
 
   // ── Espace Secrétaire ─────────────────────────────────────────────────────
   {
@@ -49,14 +49,14 @@ export const routes: Routes = [
     data: { roles: ['SECRETAIRE'] },
     children: [
       { path: '',                redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard',       component: DashboardComponent },
-      { path: 'patients',        component: PatientsComponent },
-      { path: 'rendez-vous',     component: RendezVousBackComponent },
-      { path: 'plannings',       component: PlanningsComponent },
-      { path: 'consultations',   component: ConsultationsComponent },
-      { path: 'factures',        component: FacturesComponent },
-      { path: 'notifications',   component: NotificationsComponent },
-      { path: 'profil',          component: ProfilComponent }
+      { path: 'dashboard',       component: DashboardComponent, title: 'Secrétariat — Tableau de bord' },
+      { path: 'patients',        component: PatientsComponent, title: 'Secrétariat — Patients' },
+      { path: 'rendez-vous',     component: RendezVousBackComponent, title: 'Secrétariat — Rendez-vous' },
+      { path: 'plannings',       component: PlanningsComponent, title: 'Secrétariat — Plannings' },
+      { path: 'consultations',   component: ConsultationsComponent, title: 'Secrétariat — Consultations' },
+      { path: 'factures',        component: FacturesComponent, title: 'Secrétariat — Factures' },
+      { path: 'notifications',   component: NotificationsComponent, title: 'Secrétariat — Notifications' },
+      { path: 'profil',          component: ProfilComponent, title: 'Mon profil' }
     ]
   },
 
@@ -68,14 +68,14 @@ export const routes: Routes = [
     data: { roles: ['PATIENT', 'ADMIN'] },
     children: [
       { path: '',          redirectTo: 'rdv', pathMatch: 'full' },
-      { path: 'rdv',       component: RendezVousFrontComponent },
-      { path: 'dossier',   component: DossierComponent },
-      { path: 'historique',component: HistoriqueComponent },
+      { path: 'rdv',       component: RendezVousFrontComponent, title: 'Mes rendez-vous' },
+      { path: 'dossier',   component: DossierComponent, title: 'Mon dossier médical' },
+      { path: 'historique',component: HistoriqueComponent, title: 'Mon historique' },
       { path: 'triage',        title: 'Pré-diagnostic IA',
         loadComponent: () => import('./pages/front/triage.component').then(m => m.TriageComponent) },
-      { path: 'examens',       component: MesExamensComponent },
-      { path: 'factures',      component: MesFacturesComponent },
-      { path: 'notifications', component: MesNotificationsComponent }
+      { path: 'examens',       component: MesExamensComponent, title: 'Mes examens' },
+      { path: 'factures',      component: MesFacturesComponent, title: 'Mes factures' },
+      { path: 'notifications', component: MesNotificationsComponent, title: 'Mes notifications' }
     ]
   },
 
@@ -87,9 +87,9 @@ export const routes: Routes = [
     data: { roles: ['LABO', 'ADMIN'] },
     children: [
       { path: '',             redirectTo: 'examens', pathMatch: 'full' },
-      { path: 'examens',      component: LaboExamensComponent },
-      { path: 'resultats',    component: LaboResultatsComponent },
-      { path: 'notifications',component: LaboNotificationsComponent }
+      { path: 'examens',      component: LaboExamensComponent, title: 'Laboratoire — Examens' },
+      { path: 'resultats',    component: LaboResultatsComponent, title: 'Laboratoire — Résultats' },
+      { path: 'notifications',component: LaboNotificationsComponent, title: 'Laboratoire — Notifications' }
     ]
   },
 
@@ -109,28 +109,28 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'MEDECIN'] },
     children: [
       { path: '',                redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard',       component: DashboardComponent },
-      { path: 'patients',        component: PatientsComponent },
-      { path: 'medecins',        component: MedecinsComponent,
+      { path: 'dashboard',       component: DashboardComponent, title: 'Tableau de bord' },
+      { path: 'patients',        component: PatientsComponent, title: 'Patients' },
+      { path: 'medecins',        component: MedecinsComponent, title: 'Médecins',
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-      { path: 'plannings',       component: PlanningsComponent },
-      { path: 'rendez-vous',     component: RendezVousBackComponent },
-      { path: 'consultations',   component: ConsultationsComponent },
-      { path: 'examens',         component: ExamensComponent },
-      { path: 'ordonnances',     component: OrdonnancesComponent },
-      { path: 'laboratoire',     component: LaboratoireComponent },
-      { path: 'factures',        component: FacturesComponent,
+      { path: 'plannings',       component: PlanningsComponent, title: 'Plannings' },
+      { path: 'rendez-vous',     component: RendezVousBackComponent, title: 'Rendez-vous' },
+      { path: 'consultations',   component: ConsultationsComponent, title: 'Consultations' },
+      { path: 'examens',         component: ExamensComponent, title: 'Examens' },
+      { path: 'ordonnances',     component: OrdonnancesComponent, title: 'Ordonnances' },
+      { path: 'laboratoire',     component: LaboratoireComponent, title: 'Laboratoire' },
+      { path: 'factures',        component: FacturesComponent, title: 'Factures',
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-      { path: 'notifications',   component: NotificationsComponent },
-      { path: 'statistiques',    component: StatistiquesComponent,
+      { path: 'notifications',   component: NotificationsComponent, title: 'Notifications' },
+      { path: 'statistiques',    component: StatistiquesComponent, title: 'Statistiques',
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-      { path: 'statistiques-detail', component: StatistiquesDetailComponent,
+      { path: 'statistiques-detail', component: StatistiquesDetailComponent, title: 'Statistiques détaillées',
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-      { path: 'ia',              loadComponent: () => import('./pages/back/ia-admin.component').then(m => m.IaAdminComponent),
+      { path: 'ia',              title: 'IA & aide à la décision', loadComponent: () => import('./pages/back/ia-admin.component').then(m => m.IaAdminComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-      { path: 'utilisateurs',    component: UtilisateursComponent,
+      { path: 'utilisateurs',    component: UtilisateursComponent, title: 'Utilisateurs',
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-      { path: 'profil',          component: ProfilComponent }
+      { path: 'profil',          component: ProfilComponent, title: 'Mon profil' }
     ]
   },
 

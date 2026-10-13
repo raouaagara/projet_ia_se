@@ -105,7 +105,7 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
                   <div class="hh-pcard-t">Bilan de santé</div>
                   <div class="hh-pcard-s">Demain 09h00 — Confirmé</div>
                 </div>
-                <span class="hh-pcard-ok">✓</span>
+                <span class="hh-pcard-ok"><i class="fa fa-check"></i></span>
               </div>
               <div class="hh-pcard hh-pcard-2">
                 <div class="hh-pcard-icon" style="background:#dcfce7;color:#15803d"><i class="fa fa-flask"></i></div>

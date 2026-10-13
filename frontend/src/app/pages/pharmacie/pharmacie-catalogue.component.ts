@@ -93,7 +93,7 @@ import { Fournisseur, Medicament, PharmacieService } from '../../core/pharmacie.
             <div class="mc-field"><label for="m-dci">DCI (molécule)</label><input id="m-dci" formControlName="dci"></div>
             <div class="mc-field"><label for="m-forme">Forme</label><input id="m-forme" formControlName="forme" placeholder="comprimé, gélule, sirop…"></div>
             <div class="mc-field"><label for="m-dos">Dosage</label><input id="m-dos" formControlName="dosage" placeholder="Ex. 500 mg"></div>
-            <div class="mc-field"><label for="m-px">Prix unitaire (DT) <span class="req">*</span></label><input id="m-px" type="number" min="0" step="0.01" formControlName="prixUnitaire"></div>
+            <div class="mc-field"><label for="m-px">Prix unitaire (DT) <span class="req">*</span></label><input id="m-px" type="number" min="0" step="0.001" formControlName="prixUnitaire"></div>
             <div class="mc-field"><label for="m-seuil">Seuil d'alerte <span class="req">*</span></label><input id="m-seuil" type="number" min="0" formControlName="seuilAlerte">
               <span class="mc-field-hint">Une alerte est émise sous ce nombre d'unités.</span></div>
           </div>

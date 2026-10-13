@@ -39,7 +39,7 @@ import { Fournisseur, Medicament, Mouvement, PharmacieService } from '../../core
               <div class="mc-field"><label for="r-per">Date de péremption <span class="req">*</span></label>
                 <input id="r-per" type="date" [min]="demain" formControlName="datePeremption"></div>
               <div class="mc-field"><label for="r-px">Prix d'achat unitaire (DT)</label>
-                <input id="r-px" type="number" min="0" step="0.01" formControlName="prixAchat"></div>
+                <input id="r-px" type="number" min="0" step="0.001" formControlName="prixAchat"></div>
             </div>
             <div class="mc-alert mc-alert-error" *ngIf="erreur" style="margin-top:14px"><i class="fa fa-circle-exclamation"></i> {{ erreur }}</div>
             <div class="mc-alert mc-alert-success" *ngIf="succes" style="margin-top:14px"><i class="fa fa-circle-check"></i> {{ succes }}</div>

@@ -1,4 +1,4 @@
-import { MontantPipe } from '../../shared/montant.pipe';
+import { MontantPipe, formatMontant } from '../../shared/montant.pipe';
 import { Component, OnInit } from '@angular/core';
 import { NgFor, NgIf, DecimalPipe, DatePipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
@@ -67,11 +67,11 @@ import { AuthService } from '../../core/auth.service';
             </div>
             <div class="stat-taux-row">
               <div class="stat-taux">
-                <div class="stat-taux-v" style="color:#22c55e">{{ stats.tauxConfirmation | number:'1.0-1' }} %</div>
+                <div class="stat-taux-v" style="color:#22c55e">{{ stats.tauxConfirmation | number:'1.0-1' }}&nbsp;%</div>
                 <div class="stat-taux-l">Taux conf.</div>
               </div>
               <div class="stat-taux">
-                <div class="stat-taux-v" style="color:#ef4444">{{ stats.tauxAnnulation | number:'1.0-1' }} %</div>
+                <div class="stat-taux-v" style="color:#ef4444">{{ stats.tauxAnnulation | number:'1.0-1' }}&nbsp;%</div>
                 <div class="stat-taux-l">Taux annul.</div>
               </div>
               <div class="stat-taux">
@@ -91,14 +91,14 @@ import { AuthService } from '../../core/auth.service';
                 <div class="stat-revenue-icon" style="background:#dcfce7;color:#15803d">
                   <i class="fa fa-coins"></i>
                 </div>
-                <div class="stat-revenue-val">{{ stats.revenusTotal | montant:0 }}</div>
+                <div class="stat-revenue-val">{{ stats.revenusTotal | montant }}</div>
                 <div class="stat-revenue-lbl">Revenus totaux</div>
               </div>
               <div class="stat-revenue-box">
                 <div class="stat-revenue-icon" style="background:#dbeafe;color:#1d4ed8">
                   <i class="fa fa-calendar-day"></i>
                 </div>
-                <div class="stat-revenue-val">{{ stats.revenusMoisActuel | montant:0 }}</div>
+                <div class="stat-revenue-val">{{ stats.revenusMoisActuel | montant }}</div>
                 <div class="stat-revenue-lbl">Ce mois</div>
               </div>
               <div class="stat-revenue-box">
@@ -318,9 +318,9 @@ import { AuthService } from '../../core/auth.service';
     .stat-bar-val   { font-size:14px; font-weight:800; width:24px; text-align:right; }
 
     .stat-taux-row { display:flex; border-top:1.5px solid var(--border,#f1f5f9); padding-top:14px; }
-    .stat-taux { flex:1; text-align:center; }
+    .stat-taux { flex:1; text-align:center; padding:0 8px; }
     .stat-taux:not(:last-child) { border-right:1.5px solid var(--border,#f1f5f9); }
-    .stat-taux-v { font-size:20px; font-weight:900; }
+    .stat-taux-v { font-size:18px; font-weight:900; white-space:nowrap; }
     .stat-taux-l { font-size:11px; color:var(--text-muted,#94a3b8); margin-top:2px; }
 
     /* Revenue */
@@ -450,7 +450,7 @@ export class StatistiquesDetailComponent implements OnInit {
       { label: 'Factures',      val: this.stats.facturesTotal, icon: 'fa-file-invoice',   bg: '#fef9c3', color: '#854d0e' },
       { label: 'Examens',       val: this.stats.examensTotal,  icon: 'fa-flask',          bg: '#e0f2fe', color: '#0369a1' },
       { label: 'Utilisateurs',  val: this.stats.utilisateurs,  icon: 'fa-shield-halved',  bg: '#f0fdf4', color: '#166534' },
-      { label: 'Revenus (DT)',   val: (this.stats.revenusTotal ?? 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 }),
+      { label: 'Revenus',       val: formatMontant(this.stats.revenusTotal),
         icon: 'fa-coins', bg: '#dcfce7', color: '#15803d', trend: 1 }
     ];
   }
@@ -470,7 +470,7 @@ export class StatistiquesDetailComponent implements OnInit {
     if (!this.stats) return [];
     return [
       { label: 'Médecins disponibles', val: this.stats.medecinsDisponibles + ' / ' + this.stats.medecins, icon: 'fa-user-doctor', color: '#22c55e' },
-      { label: 'Taux confirmation RDV', val: this.stats.tauxConfirmation + '%', icon: 'fa-chart-line', color: '#0f6cbd' },
+      { label: 'Taux confirmation RDV', val: (this.stats.tauxConfirmation ?? 0).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + '\u00A0%', icon: 'fa-chart-line', color: '#0f6cbd' },
       { label: 'Factures payées',       val: this.stats.facturesPayees + ' / ' + this.stats.facturesTotal, icon: 'fa-circle-check', color: '#15803d' },
       { label: 'Résultats examens dispo.', val: this.stats.examensResultatsDisponibles, icon: 'fa-flask', color: '#7e22ce' },
       { label: 'Comptes utilisateurs',  val: this.stats.utilisateurs, icon: 'fa-shield-halved', color: '#475569' }
