@@ -1,4 +1,4 @@
-import { MontantPipe, formatMontant } from '../../shared/montant.pipe';
+import { MontantPipe } from '../../shared/montant.pipe';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf, DecimalPipe, DatePipe } from '@angular/common';
@@ -40,7 +40,7 @@ import { AuthService } from '../../core/auth.service';
         </div>
         <div class="fac-kpi">
           <div class="fac-kpi-icon" style="background:#f0fdf4;color:#166534"><i class="fa fa-coins"></i></div>
-          <div><div class="fac-kpi-v">{{ totalRevenus() | montant:0 }}</div><div class="fac-kpi-l">Revenus encaissés</div></div>
+          <div><div class="fac-kpi-v">{{ totalRevenus() | montant }}</div><div class="fac-kpi-l">Revenus encaissés</div></div>
         </div>
       </div>
 
@@ -75,11 +75,11 @@ import { AuthService } from '../../core/auth.service';
           <div class="fac-row">
             <div class="fac-field">
               <label>Montant total (DT) <span class="req">*</span></label>
-              <input type="number" formControlName="montantTotal" step="0.01" min="0" placeholder="0.00">
+              <input type="number" formControlName="montantTotal" step="0.001" min="0" placeholder="0,000">
             </div>
             <div class="fac-field">
               <label>Montant payé (DT)</label>
-              <input type="number" formControlName="montantPaye" step="0.01" min="0" placeholder="0.00">
+              <input type="number" formControlName="montantPaye" step="0.001" min="0" placeholder="0,000">
             </div>
             <div class="fac-field">
               <label>Statut</label>
@@ -362,26 +362,14 @@ export class FacturesComponent implements OnInit {
   }
 
   exportPdf(f: any): void {
-    const content = `
-FACTURE N° ${f.numeroFacture}
-Date : ${f.dateFacture}
-Patient : ${f.patientNom}
-Médecin : ${f.medecinNom || 'N/A'}
-──────────────────────────────
-Montant total : ${formatMontant(f.montantTotal)}
-Montant payé  : ${formatMontant(f.montantPaye)}
-Statut        : ${this.statutLabel(f.statut)}
-──────────────────────────────
-Notes : ${f.notes || 'Aucune'}
-    `.trim();
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url;
-    a.download = `facture-${f.numeroFacture}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    this.api.facturePdf(f.id).subscribe(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `facture-${f.numeroFacture}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   }
 
   filtered(): any[] {

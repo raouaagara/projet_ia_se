@@ -1,4 +1,4 @@
-import { MontantPipe, formatMontant } from '../../shared/montant.pipe';
+import { MontantPipe } from '../../shared/montant.pipe';
 import { Component, OnInit } from '@angular/core';
 import { NgFor, NgIf, DecimalPipe, DatePipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
@@ -19,11 +19,11 @@ import { catchError, of } from 'rxjs';
         </div>
         <div class="mf-summary" *ngIf="items.length > 0">
           <div class="mf-sum-box">
-            <span class="mf-sum-v">{{ totalPaye() | montant:0 }}</span>
+            <span class="mf-sum-v">{{ totalPaye() | montant }}</span>
             <span class="mf-sum-l">Total payé</span>
           </div>
           <div class="mf-sum-box">
-            <span class="mf-sum-v">{{ totalDu() | montant:0 }}</span>
+            <span class="mf-sum-v">{{ totalDu() | montant }}</span>
             <span class="mf-sum-l">En attente</span>
           </div>
         </div>
@@ -74,7 +74,7 @@ import { catchError, of } from 'rxjs';
               <i class="fa fa-circle-info"></i> {{ f.notes }}
             </div>
           </div>
-          <button class="mf-pdf-btn" title="Télécharger" (click)="exportPdf(f)">
+          <button class="mf-pdf-btn" title="Télécharger la facture (PDF)" (click)="exportPdf(f)">
             <i class="fa fa-file-pdf"></i>
           </button>
         </div>
@@ -175,10 +175,14 @@ export class MesFacturesComponent implements OnInit {
   totalDu():   number { return this.items.filter(f => f.statut === 'EN_ATTENTE').reduce((s,f) => s + (f.montantTotal - f.montantPaye), 0); }
 
   exportPdf(f: any): void {
-    const txt = `FACTURE N° ${f.numeroFacture}\nDate : ${f.dateFacture}\nMédecin : ${f.medecinNom||'N/A'}\nTotal : ${formatMontant(f.montantTotal)}\nPayé : ${formatMontant(f.montantPaye)}\nStatut : ${this.statutLabel(f.statut)}`;
-    const blob = new Blob([txt], { type: 'text/plain' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `facture-${f.numeroFacture}.txt`; a.click();
+    this.api.facturePdf(f.id).subscribe(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `facture-${f.numeroFacture}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   }
 
   monthShort(d: string): string {

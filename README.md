@@ -148,6 +148,7 @@ Rappel automatique envoyé une seule fois, 24 h avant le rendez-vous (tâche hor
 |----------|---------|-------------|
 | `/api/factures` | CRUD | Factures et lignes de facture |
 | `/api/factures/patient/{id}` | GET | Factures d'un patient |
+| `/api/factures/{id}/pdf` | GET | Facture au format PDF (le patient ne télécharge que les siennes) |
 | `/api/factures/{id}/paiement` | PUT | Enregistrement d'un paiement |
 | `/api/statistiques`, `/api/statistiques-detail` | GET | Indicateurs (personnel uniquement) |
 

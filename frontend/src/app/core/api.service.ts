@@ -67,6 +67,7 @@ export class ApiService {
   // ── FACTURES ─────────────────────────────────────────────────────
   factures() { return this.http.get<any[]>(`${this.base}/factures`); }
   factureById(id: number) { return this.http.get<any>(`${this.base}/factures/${id}`); }
+  facturePdf(id: number) { return this.http.get(`${this.base}/factures/${id}/pdf`, { responseType: 'blob' }); }
   facturesPatient(pid: number) { return this.http.get<any[]>(`${this.base}/factures/patient/${pid}`); }
   factureStats() { return this.http.get<any>(`${this.base}/factures/stats`); }
   saveFacture(body: any, id?: number) {

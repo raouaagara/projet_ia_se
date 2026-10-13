@@ -2,9 +2,15 @@ package com.clinique.gestion.controller;
 
 import com.clinique.gestion.dto.FactureDto;
 import com.clinique.gestion.entity.StatutPaiement;
+import com.clinique.gestion.service.FacturePdfService;
 import com.clinique.gestion.service.FactureService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +25,7 @@ import java.util.Map;
 public class FactureController {
 
     private final FactureService factureService;
+    private final FacturePdfService facturePdfService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
@@ -27,6 +34,17 @@ public class FactureController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','PATIENT')")
     public FactureDto findById(@PathVariable Long id) { return factureService.findById(id); }
+
+    @GetMapping("/{id}/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','PATIENT')")
+    @Operation(summary = "Facture au format PDF (un patient ne télécharge que ses propres factures)")
+    public ResponseEntity<byte[]> pdf(@PathVariable Long id) {
+        FacturePdfService.FichierPdf fichier = facturePdfService.generer(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(fichier.nom()).build().toString())
+                .body(fichier.contenu());
+    }
 
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE','PATIENT')")
