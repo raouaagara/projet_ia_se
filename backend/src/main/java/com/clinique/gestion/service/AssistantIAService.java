@@ -17,6 +17,7 @@ import com.clinique.gestion.entity.NiveauUrgence;
 import com.clinique.gestion.entity.Ordonnance;
 import com.clinique.gestion.entity.Patient;
 import com.clinique.gestion.entity.RendezVous;
+import com.clinique.gestion.entity.StatutExamen;
 import com.clinique.gestion.entity.StatutRendezVous;
 import com.clinique.gestion.entity.TriageSymptomes;
 import com.clinique.gestion.entity.TypeAnalyseIA;
@@ -277,7 +278,7 @@ public class AssistantIAService {
                 .append(o.getMedicaments().replace("\n", " ; ")).append("\n"));
         List<ExamenLaboratoire> examens = examenRepository.findByPatientIdOrderByDateDemandeDesc(p.getId());
         examens.stream().limit(5).forEach(e -> sb.append("- Examen « ").append(e.getTypeExamen()).append(" » (")
-                .append(e.getStatut().name().replace('_', ' ').toLowerCase()).append(")")
+                .append(libelle(e.getStatut())).append(")")
                 .append(e.getResultatTexte() != null ? " : " + e.getResultatTexte().replace("\n", " ; ") : "").append("\n"));
 
         sb.append("\nPOINTS DE VIGILANCE\n");
@@ -548,6 +549,15 @@ public class AssistantIAService {
                 : Period.between(p.getDateNaissance(), LocalDate.now()).getYears() + " ans";
         String sexe = p.getSexe() == null ? "sexe non renseigné" : ("F".equalsIgnoreCase(p.getSexe()) ? "femme" : "homme");
         return "Patient : " + sexe + ", " + age + " ; antécédents : " + valeur(p.getAntecedents()) + " ; allergies : " + valeur(p.getAllergies()) + ".";
+    }
+
+    private static String libelle(StatutExamen statut) {
+        return switch (statut) {
+            case DEMANDE -> "demandé";
+            case EN_COURS -> "en cours";
+            case RESULTAT_DISPONIBLE -> "résultat disponible";
+            case ANNULE -> "annulé";
+        };
     }
 
     private static String valeur(String v) {

@@ -136,7 +136,7 @@ public class DataSeeder implements CommandLineRunner {
                 .utilisateur(uPat)
                 .titre("Rappel de rendez-vous")
                 .message("Rappel : vous avez un rendez-vous avec Dr Jean Martin le "
-                        + rdv.getDateHeure().toLocalDate() + " à 10h30.")
+                        + rdv.getDateHeure().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH'h'mm")) + ".")
                 .type(TypeNotification.RAPPEL_RDV)
                 .lue(false)
                 .referenceId(rdv.getId())
