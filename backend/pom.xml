@@ -81,6 +81,12 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Base en mémoire pour les tests : « mvn test » ne nécessite pas MySQL -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- iText 7 : export PDF factures (kernel + layout suffisent) -->
         <dependency>
