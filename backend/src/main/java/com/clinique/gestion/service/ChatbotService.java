@@ -1,7 +1,9 @@
 package com.clinique.gestion.service;
 
+import com.clinique.gestion.dto.ChatHistoryDto;
 import com.clinique.gestion.dto.ChatbotResponse;
 import com.clinique.gestion.dto.StatistiqueDto;
+import com.clinique.gestion.entity.ChatMessage;
 import com.clinique.gestion.entity.FonctionIA;
 import com.clinique.gestion.entity.Medecin;
 import com.clinique.gestion.entity.Role;
@@ -13,6 +15,7 @@ import com.clinique.gestion.repository.*;
 import com.clinique.gestion.security.UtilisateurCourant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -45,13 +49,34 @@ public class ChatbotService {
     private final ClientIA clientIA;
     private final JournalIAService journal;
     private final UtilisateurCourant utilisateurCourant;
+    private final ChatMessageRepository chatMessageRepository;
 
-    public ChatbotResponse repondre(String message) {
+    /**
+     * Répond au message. Pour un utilisateur connecté, l'échange est enregistré dans sa conversation {@code sessionId}
+     * (créée si absente) ; une conversation appartenant à un autre utilisateur n'est jamais réutilisée.
+     */
+    public ChatbotResponse repondre(String message, String sessionId) {
         Optional<Utilisateur> u = utilisateurCourant.get();
         String role = u.map(x -> x.getRole().name()).orElse("VISITEUR");
         String prenom = u.map(Utilisateur::getPrenom).orElse("");
-        long debut = System.nanoTime();
+        Utilisateur auteur = u.orElse(null);
 
+        String sid = sessionId != null && !sessionId.isBlank() && (auteur == null || sessionLibre(sessionId, auteur))
+                ? sessionId : UUID.randomUUID().toString();
+        if (auteur != null) sauvegarderMessage(auteur, sid, "user", message, null);
+        ChatbotResponse reponse = generer(message, role, prenom);
+        if (auteur != null) sauvegarderMessage(auteur, sid, "bot", reponse.getReponse(), reponse.getSource());
+        reponse.setSessionId(sid);
+        return reponse;
+    }
+
+    private boolean sessionLibre(String sessionId, Utilisateur auteur) {
+        return chatMessageRepository.findBySessionIdOrderByDateMessageAsc(sessionId).stream()
+                .allMatch(m -> m.getUtilisateur() != null && m.getUtilisateur().getId().equals(auteur.getId()));
+    }
+
+    private ChatbotResponse generer(String message, String role, String prenom) {
+        long debut = System.nanoTime();
         if (clientIA.estConfigure()) {
             try {
                 String reponse = clientIA.completer(prompt(role, prenom, contexte(role)), message, 0.4, 700);
@@ -145,6 +170,12 @@ public class ChatbotService {
             return AVERTISSEMENT_URGENCE;
         if (t.contains("horaire") || t.contains("ouvert"))
             return "La clinique est ouverte du lundi au vendredi de 8 h à 18 h et le samedi de 9 h à 13 h.";
+        if (t.contains("service") || t.contains("soin") || t.contains("propose"))
+            return "La clinique MediCare propose des consultations de médecine générale et spécialisée, des examens de laboratoire, "
+                    + "des ordonnances délivrées par sa pharmacie et le suivi de vos factures en ligne.";
+        if (t.contains("contact") || t.contains("adresse") || t.contains("téléphone") || t.contains("telephone"))
+            return "Vous pouvez joindre la clinique aux heures d'ouverture (du lundi au vendredi de 8 h à 18 h, le samedi de 9 h à 13 h) "
+                    + "ou poser vos questions ici.";
         if (t.contains("médecin") || t.contains("medecin") || t.contains("docteur") || t.contains("spécialit"))
             return listeMedecins();
         if (t.contains("symptôme") || t.contains("symptome") || t.contains("mal ") || t.contains("douleur"))
@@ -152,7 +183,9 @@ public class ChatbotService {
                     + "Il ne remplace pas un avis médical. " + AVERTISSEMENT_URGENCE;
         if (t.contains("rdv") || t.contains("rendez")) {
             if (!personnel) {
-                return "Vous pouvez prendre, consulter ou annuler un rendez-vous depuis la rubrique « Rendez-vous » de votre espace patient.";
+                return "Pour prendre rendez-vous : **1.** créez votre compte patient ou connectez-vous ; **2.** ouvrez « Mes rendez-vous » "
+                        + "puis « Nouveau rendez-vous » ; **3.** choisissez le médecin, la date et l'heure ; **4.** confirmez. "
+                        + "Vous recevrez une notification dès que le médecin aura confirmé.";
             }
             return String.format("Rendez-vous : %d planifiés et %d confirmés.",
                     rendezVousRepository.countByStatut(StatutRendezVous.PLANIFIE),
@@ -163,6 +196,7 @@ public class ChatbotService {
                     patientRepository.count(), medecinRepository.count(), medecinRepository.countByDisponibleTrue(),
                     rendezVousRepository.count(), consultationRepository.count());
         }
+
         return aide(role);
     }
 
@@ -233,5 +267,79 @@ public class ChatbotService {
             .rendezVousAnnules(0).rendezVousTermines(0)
             .utilisateurs(0).tauxConfirmation(0).tauxAnnulation(0)
             .build();
+    }
+
+    // ── HISTORIQUE CHATBOT ────────────────────────────────────────────────
+
+    private void sauvegarderMessage(Utilisateur utilisateur, String sessionId,
+                                     String role, String contenu, String source) {
+        try {
+            ChatMessage msg = ChatMessage.builder()
+                .utilisateur(utilisateur)
+                .sessionId(sessionId)
+                .role(role)
+                .contenu(contenu)
+                .source(source)
+                .dateMessage(LocalDateTime.now())
+                .build();
+            chatMessageRepository.save(msg);
+        } catch (Exception ignored) {
+            // Ne jamais bloquer le chatbot à cause de l'historique
+        }
+    }
+
+    /** Sessions d'un utilisateur avec aperçu */
+    public List<ChatHistoryDto> getSessionsUtilisateur(Long utilisateurId) {
+        verifierProprietaire(utilisateurId);
+        List<String> sessions = chatMessageRepository.findSessionsByUtilisateurId(utilisateurId);
+        return sessions.stream().map(sid -> {
+            List<ChatMessage> msgs = chatMessageRepository
+                .findBySessionIdOrderByDateMessageAsc(sid);
+            List<ChatHistoryDto.ChatMessageDto> dtos = msgs.stream()
+                .map(m -> ChatHistoryDto.ChatMessageDto.builder()
+                    .id(m.getId()).role(m.getRole()).contenu(m.getContenu())
+                    .source(m.getSource()).dateMessage(m.getDateMessage())
+                    .build())
+                .collect(Collectors.toList());
+            return ChatHistoryDto.builder()
+                .sessionId(sid)
+                .dateDebut(msgs.isEmpty() ? null : msgs.get(0).getDateMessage())
+                .dateFin(msgs.isEmpty()   ? null : msgs.get(msgs.size()-1).getDateMessage())
+                .nbMessages(msgs.size())
+                .messages(dtos)
+                .build();
+        }).collect(Collectors.toList());
+    }
+
+    /** Messages d'une session précise */
+    public List<ChatHistoryDto.ChatMessageDto> getSession(String sessionId) {
+        Utilisateur moi = utilisateurCourant.requis();
+        List<ChatMessage> messages = chatMessageRepository.findBySessionIdOrderByDateMessageAsc(sessionId);
+        boolean autrui = messages.stream().anyMatch(m -> m.getUtilisateur() == null || !m.getUtilisateur().getId().equals(moi.getId()));
+        if (autrui && moi.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Conversation d'un autre utilisateur");
+        }
+        return messages.stream()
+            .map(m -> ChatHistoryDto.ChatMessageDto.builder()
+                .id(m.getId()).role(m.getRole()).contenu(m.getContenu())
+                .source(m.getSource()).dateMessage(m.getDateMessage())
+                .build())
+            .collect(Collectors.toList());
+    }
+
+    /** Supprimer l'historique d'un utilisateur */
+    public void supprimerHistorique(Long utilisateurId) {
+        verifierProprietaire(utilisateurId);
+        List<ChatMessage> msgs = chatMessageRepository
+            .findByUtilisateurIdOrderByDateMessageDesc(utilisateurId);
+        chatMessageRepository.deleteAll(msgs);
+    }
+
+    /** Seul l'auteur des conversations (ou un administrateur) peut les consulter ou les supprimer. */
+    private void verifierProprietaire(Long utilisateurId) {
+        Utilisateur moi = utilisateurCourant.requis();
+        if (!moi.getId().equals(utilisateurId) && moi.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Historique d'un autre utilisateur");
+        }
     }
 }

@@ -4,6 +4,7 @@ import { NgIf, NgFor } from '@angular/common';
 import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
 import { ChatbotComponent } from '../shared/chatbot.component';
+import { WebSocketService } from '../core/websocket.service';
 
 @Component({
   selector: 'app-front-layout',
@@ -272,16 +273,42 @@ export class FrontLayoutComponent implements OnInit, OnDestroy {
   popup = { show: false, type: 'info', icon: 'fa fa-bell', title: '', msg: '' };
   private lastCount = 0;
   private interval: any;
+  private wsSubs: any[] = [];
 
-  constructor(public auth: AuthService, private api: ApiService) {}
+  constructor(public auth: AuthService, private api: ApiService, private ws: WebSocketService) {}
 
   ngOnInit(): void {
-    this.loadNotif();
-    this.interval = setInterval(() => this.loadNotif(), 15000);
+    const uid = this.auth.current()?.id;
+    if (uid) {
+      this.loadNotif();
+      // Connexion WebSocket — temps réel
+      this.ws.connect(uid);
+      // Nouvelles notifications push → popup
+      this.wsSubs.push(
+        this.ws.notification$.subscribe(n => {
+          this.notifCount++;
+          const isRdvConfirme = n.type === 'RDV_CONFIRME';
+          const isRdvAnnule   = n.type === 'RDV_ANNULE';
+          this.showPopup(
+            isRdvConfirme ? 'success' : isRdvAnnule ? 'error' : 'info',
+            isRdvConfirme ? 'fa fa-circle-check' : isRdvAnnule ? 'fa fa-circle-xmark' : 'fa fa-bell',
+            n.titre, n.message
+          );
+        })
+      );
+      // Compteur mis à jour en temps réel
+      this.wsSubs.push(
+        this.ws.count$.subscribe(count => this.notifCount = count)
+      );
+    }
+    // Fallback polling réduit (60s)
+    this.interval = setInterval(() => this.loadNotif(), 60000);
   }
 
   ngOnDestroy(): void {
     if (this.interval) clearInterval(this.interval);
+    this.wsSubs.forEach(s => s.unsubscribe());
+    this.ws.disconnect();
   }
 
   private loadNotif(): void {

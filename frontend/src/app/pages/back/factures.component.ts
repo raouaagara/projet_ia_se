@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgFor, NgIf, DecimalPipe, DatePipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { PdfService } from '../../core/pdf.service';
 
 @Component({
   selector: 'app-factures',
@@ -314,7 +315,7 @@ export class FacturesComponent implements OnInit {
     notes:        ['']
   });
 
-  constructor(private fb: FormBuilder, private api: ApiService, public auth: AuthService) {}
+  constructor(private fb: FormBuilder, private api: ApiService, public auth: AuthService, private pdf: PdfService) {}
 
   ngOnInit(): void {
     this.load();
@@ -362,14 +363,7 @@ export class FacturesComponent implements OnInit {
   }
 
   exportPdf(f: any): void {
-    this.api.facturePdf(f.id).subscribe(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `facture-${f.numeroFacture}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
+    this.pdf.ouvrir('facture', f.id);
   }
 
   filtered(): any[] {

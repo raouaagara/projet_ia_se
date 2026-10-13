@@ -20,6 +20,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final com.clinique.gestion.security.UtilisateurCourant utilisateurCourant;
+    private final NotificationWebSocketService wsService;
 
     /** Seul le destinataire (ou un administrateur) peut lire ou modifier ses notifications. */
     public void verifierProprietaire(Long utilisateurId) {
@@ -111,11 +112,19 @@ public class NotificationService {
     private void envoyer(Utilisateur u, String titre, String message,
                          TypeNotification type, Long referenceId, String referenceType) {
         if (u == null) return;
-        notificationRepository.save(Notification.builder()
+        Notification n = notificationRepository.save(Notification.builder()
             .utilisateur(u).titre(titre).message(message)
             .type(type).lue(false)
             .referenceId(referenceId).referenceType(referenceType)
             .build());
+        // ── Push WebSocket en temps réel ───────────────────────────────
+        try {
+            wsService.envoyerNotification(u.getId(), n);
+            long count = notificationRepository.countByUtilisateurIdAndLueFalse(u.getId());
+            wsService.broadcastNotifCount(u.getId(), count);
+        } catch (Exception ignored) {
+            // WebSocket optionnel — ne pas bloquer si non connecté
+        }
     }
 
     private NotificationDto toDto(Notification n) {

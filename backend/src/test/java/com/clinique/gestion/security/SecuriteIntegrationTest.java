@@ -4,7 +4,9 @@ import com.clinique.gestion.entity.Facture;
 import com.clinique.gestion.entity.Patient;
 import com.clinique.gestion.entity.Role;
 import com.clinique.gestion.entity.Utilisateur;
+import com.clinique.gestion.repository.ExamenLaboratoireRepository;
 import com.clinique.gestion.repository.FactureRepository;
+import com.clinique.gestion.repository.OrdonnanceRepository;
 import com.clinique.gestion.repository.PatientRepository;
 import com.clinique.gestion.repository.UtilisateurRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -53,6 +56,8 @@ class SecuriteIntegrationTest {
     @Autowired UtilisateurRepository utilisateurs;
     @Autowired PatientRepository patients;
     @Autowired FactureRepository factures;
+    @Autowired OrdonnanceRepository ordonnances;
+    @Autowired ExamenLaboratoireRepository examens;
     @Autowired PasswordEncoder passwordEncoder;
 
     private final Map<String, String> jetons = new HashMap<>();
@@ -224,6 +229,28 @@ class SecuriteIntegrationTest {
                 .andExpect(status().isForbidden());
         mvc.perform(get("/api/factures/" + facture.getId() + "/pdf").header(HttpHeaders.AUTHORIZATION, "Bearer " + jeton("labo")))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void lesPdfEtLHistoriqueDuChatSontReservesASonTitulaire() throws Exception {
+        String lucie = jeton("patient.dupont");
+        String autre = jeton(AUTRE_PATIENT);
+        Long ordonnance = ordonnances.findByConsultationPatientIdOrderByDateEmissionDesc(dossierLucie).get(0).getId();
+        Long examen = examens.findByPatientIdOrderByDateDemandeDesc(dossierLucie).get(0).getId();
+        for (String url : new String[]{"/api/pdf/ordonnance/" + ordonnance, "/api/pdf/examen/" + examen}) {
+            mvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, "Bearer " + lucie))
+                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_PDF));
+            mvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, "Bearer " + autre)).andExpect(status().isForbidden());
+        }
+
+        Long uidLucie = utilisateurs.findByEmail("patient.dupont@clinique.local").orElseThrow().getId();
+        mvc.perform(get("/api/chatbot/historique/" + uidLucie).header(HttpHeaders.AUTHORIZATION, "Bearer " + lucie))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/chatbot/historique/" + uidLucie).header(HttpHeaders.AUTHORIZATION, "Bearer " + autre))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete("/api/chatbot/historique/" + uidLucie).header(HttpHeaders.AUTHORIZATION, "Bearer " + autre))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/chatbot/historique/" + uidLucie)).andExpect(status().isUnauthorized());
     }
 
     // ── Outils ───────────────────────────────────────────────────────────────

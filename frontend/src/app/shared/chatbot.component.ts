@@ -1,4 +1,4 @@
-import { Component, signal, ViewChild, ElementRef, AfterViewChecked, inject } from '@angular/core';
+import { Component, signal, ViewChild, ElementRef, AfterViewChecked, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
 import { ApiService } from '../core/api.service';
@@ -271,6 +271,11 @@ interface Msg { from: 'user' | 'bot'; text: string; time: string; typing?: boole
 export class ChatbotComponent implements AfterViewChecked {
   @ViewChild('scrollContainer') private scrollEl!: ElementRef;
 
+  /** Forcer un rôle indépendamment de l'utilisateur connecté.
+   *  Utiliser 'PUBLIC' sur la page d'accueil pour toujours afficher
+   *  le contexte visiteur, même si un médecin est connecté. */
+  @Input() forceRole?: string;
+
   open   = signal(false);
   draft  = '';
   busy   = false;
@@ -291,6 +296,9 @@ export class ChatbotComponent implements AfterViewChecked {
     if (this.open()) this.unread = 0;
   }
 
+  /** Identifiant de la conversation en cours (historique enregistré côté serveur pour les utilisateurs connectés). */
+  private sessionId?: string;
+
   sendText(text: string): void { this.draft = text; this.send(); }
 
   send(): void {
@@ -302,9 +310,10 @@ export class ChatbotComponent implements AfterViewChecked {
     this.messages.update(l => [...l, { from: 'bot', text: '', time: '', typing: true }]);
 
     // La clé de l'API IA reste côté serveur : le navigateur n'appelle que le backend.
-    this.api.chatbot(text).subscribe({
+    this.api.chatbot(text, this.sessionId).subscribe({
       next: (res) => {
         this.busy = false;
+        this.sessionId = res.sessionId ?? this.sessionId;
         this.messages.update(l => [
           ...l.filter(m => !m.typing),
           { from: 'bot', text: res.reponse, time: this.now(), source: res.source }
@@ -322,6 +331,7 @@ export class ChatbotComponent implements AfterViewChecked {
   }
 
   clearMessages(): void {
+    this.sessionId = undefined;
     this.messages.set([{ from: 'bot', text: this.welcomeMsg(), time: this.now() }]);
   }
 
@@ -336,7 +346,7 @@ export class ChatbotComponent implements AfterViewChecked {
   // ── Role-specific ──────────────────────────────────────
 
   suggestions(): { icon: string; label: string; text: string }[] {
-    const role = this.auth.role();
+    const role = this.effectiveRole();
     if (role === 'MEDECIN') return [
       { icon:'fa fa-calendar-check', label:'Mes RDV',           text:'Combien de rendez-vous ai-je planifiés ?' },
       { icon:'fa fa-users',          label:'Mes patients',       text:'Donne-moi un résumé de mon activité' },
@@ -385,7 +395,7 @@ export class ChatbotComponent implements AfterViewChecked {
   }
 
   welcomeMsg(): string {
-    const role = this.auth.role();
+    const role = this.effectiveRole();
     const name = this.auth.current()?.prenom ?? '';
     const h = new Date().getHours();
     const greeting = h >= 18 || h < 5 ? 'Bonsoir' : 'Bonjour';
@@ -422,6 +432,12 @@ export class ChatbotComponent implements AfterViewChecked {
     if (this.auth.role() === 'MEDECIN') return 'Question médicale, note clinique...';
     if (this.auth.role() === 'ADMIN') return 'Activité, gestion, organisation...';
     return 'Posez votre question...';
+  }
+
+  /** Retourne le rôle effectif : forceRole prioritaire sur auth.role() */
+  effectiveRole(): string {
+    if (this.forceRole) return this.forceRole.toUpperCase();
+    return this.auth.role() ?? 'PATIENT';
   }
 
   private scrollToBottom(): void {

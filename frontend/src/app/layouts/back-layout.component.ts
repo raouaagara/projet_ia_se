@@ -4,6 +4,7 @@ import { NgIf, NgFor } from '@angular/common';
 import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
 import { ChatbotComponent } from '../shared/chatbot.component';
+import { WebSocketService } from '../core/websocket.service';
 
 @Component({
   selector: 'app-back-layout',
@@ -73,6 +74,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
         </div>
       </header>
       <main class="admin-main"><div class="admin-content"><router-outlet></router-outlet></div></main>
+      <app-chatbot></app-chatbot>
     </div>
 
     <!-- ══════════════ MÉDECIN LAYOUT — SIDEBAR ══════════════ -->
@@ -145,6 +147,7 @@ import { ChatbotComponent } from '../shared/chatbot.component';
         </header>
         <main class="med-main"><div class="med-content"><router-outlet></router-outlet></div></main>
       </div>
+      <app-chatbot></app-chatbot>
     </div>
 
   `,
@@ -345,27 +348,51 @@ export class BackLayoutComponent implements OnInit, OnDestroy {
   mob = false;
   collapsed = false;
   notifCount = 0;
-  private timer?: ReturnType<typeof setInterval>;
+  private interval: any;
+  private wsSubs: any[] = [];
 
-  constructor(public auth: AuthService, private api: ApiService) {}
+  constructor(
+    public auth: AuthService,
+    private api: ApiService,
+    private ws: WebSocketService
+  ) {}
 
   ngOnInit(): void {
     const saved = localStorage.getItem('theme');
     this.dark = saved === 'dark';
     document.documentElement.classList.toggle('dark', this.dark);
-    this.loadNotifCount();
-    // Polling toutes les 15 secondes pour les notifications temps réel
-    this.timer = setInterval(() => this.loadNotifCount(), 15000);
+
+    const uid = this.auth.current()?.id;
+    if (uid) {
+      // Charger le compteur initial
+      this.loadNotifCount();
+
+      // Connexion WebSocket — remplace le polling
+      this.ws.connect(uid);
+
+      // Écouter le compteur en temps réel
+      this.wsSubs.push(
+        this.ws.count$.subscribe(count => this.notifCount = count)
+      );
+
+      // Le polling reste la source fiable : le push WebSocket n'est pas encore authentifié côté STOMP.
+      this.interval = setInterval(() => this.loadNotifCount(), 15000);
+    }
   }
 
   ngOnDestroy(): void {
-    if (this.timer) clearInterval(this.timer);
+    if (this.interval) clearInterval(this.interval);
+    this.wsSubs.forEach(s => s.unsubscribe());
+    this.ws.disconnect();
   }
 
   private loadNotifCount(): void {
     const uid = this.auth.current()?.id;
     if (!uid) return;
-    this.api.countNotificationsNonLues(uid).subscribe({ next: (r: any) => this.notifCount = r?.count ?? 0, error: () => {} });
+    this.api.countNotificationsNonLues(uid).subscribe({
+      next: (r: any) => this.notifCount = r?.count ?? 0,
+      error: () => {}
+    });
   }
 
   toggleDark(): void {

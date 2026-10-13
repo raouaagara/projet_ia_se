@@ -39,6 +39,17 @@ class JwtServiceTest {
     }
 
     @Test
+    void leJetonEstUnJwsEnTroisPartiesQuiPorteLesRevendications() {
+        JwtService jwt = jwtService(SECRET, 60_000);
+
+        String jeton = jwt.generateToken(patient, Map.of("role", "ADMIN", "userId", 1));
+
+        assertThat(jeton.split("\\.")).hasSize(3); // en-tête.contenu.signature
+        String contenu = new String(Base64.getUrlDecoder().decode(jeton.split("\\.")[1]), StandardCharsets.UTF_8);
+        assertThat(contenu).contains("\"role\":\"ADMIN\"", "\"userId\":1");
+    }
+
+    @Test
     void unJetonNeVautPasPourUnAutreUtilisateur() {
         JwtService jwt = jwtService(SECRET, 60_000);
 

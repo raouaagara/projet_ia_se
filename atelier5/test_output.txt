@@ -1,0 +1,38 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Lenovo\Downloads\Matching_Ml\prix-ml\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Lenovo\Projects\clinique-medicale\atelier5
+plugins: anyio-4.13.0, cov-7.1.0
+collecting ... collected 21 items
+
+test_booking.py::TestCasNominal::test_standard_basse_saison_sans_vue_mer PASSED [  4%]
+test_booking.py::TestCasNominal::test_standard_basse_saison_avec_vue_mer PASSED [  9%]
+test_booking.py::TestCasNominal::test_suite_basse_saison_sans_vue_mer PASSED [ 14%]
+test_booking.py::TestCasNominal::test_suite_basse_saison_avec_vue_mer PASSED [ 19%]
+test_booking.py::TestSaisonHaute::test_standard_haute_saison_sans_vue_mer PASSED [ 23%]
+test_booking.py::TestSaisonHaute::test_standard_haute_saison_avec_vue_mer PASSED [ 28%]
+test_booking.py::TestSaisonHaute::test_suite_haute_saison_sans_vue_mer PASSED [ 33%]
+test_booking.py::TestSaisonHaute::test_suite_haute_saison_avec_vue_mer PASSED [ 38%]
+test_booking.py::TestCasComplexe::test_suite_haute_saison_vue_mer_long_sejour PASSED [ 42%]
+test_booking.py::TestCasComplexe::test_standard_haute_saison_vue_mer_long_sejour PASSED [ 47%]
+test_booking.py::TestCasComplexe::test_suite_basse_saison_vue_mer_long_sejour PASSED [ 52%]
+test_booking.py::TestCasComplexe::test_standard_basse_saison_sans_vue_mer_long_sejour PASSED [ 57%]
+test_booking.py::TestCasLimite::test_exactement_7_nuits_pas_de_reduction PASSED [ 61%]
+test_booking.py::TestCasLimite::test_8_nuits_reduction_appliquee PASSED  [ 66%]
+test_booking.py::TestCasLimite::test_exactement_1_nuit PASSED            [ 71%]
+test_booking.py::TestCasErreur::test_duree_sejour_nulle PASSED           [ 76%]
+test_booking.py::TestCasErreur::test_duree_sejour_negative PASSED        [ 80%]
+test_booking.py::TestCasErreur::test_type_chambre_inconnu PASSED         [ 85%]
+test_booking.py::TestCasErreur::test_type_chambre_vide PASSED            [ 90%]
+test_booking.py::TestCasErreur::test_saison_inconnue PASSED              [ 95%]
+test_booking.py::TestCasErreur::test_saison_vide PASSED                  [100%]
+
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.11.9-final-0 _______________
+
+Name                Stmts   Miss  Cover   Missing
+-------------------------------------------------
+booking_engine.py      20      0   100%
+-------------------------------------------------
+TOTAL                  20      0   100%
+============================= 21 passed in 0.18s ==============================

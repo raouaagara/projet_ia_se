@@ -6,6 +6,7 @@ import { catchError, of } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { Medicament, Ordonnance, PharmacieService } from '../../core/pharmacie.service';
+import { PdfService } from '../../core/pdf.service';
 
 @Component({
   selector: 'app-ordonnances',
@@ -91,6 +92,7 @@ import { Medicament, Ordonnance, PharmacieService } from '../../core/pharmacie.s
                 <td><span class="mc-chip" [ngClass]="statut(o).ton">{{ statut(o).libelle }}</span></td>
                 <td class="mc-num">
                   <button class="mc-btn mc-btn-sm" (click)="imprimer(o)" title="Imprimer"><i class="fa fa-print"></i></button>
+                  <button class="mc-btn mc-btn-sm" (click)="exportPdf(o)" title="Télécharger en PDF"><i class="fa fa-file-pdf"></i></button>
                   <ng-container *ngIf="modifiable(o)">
                     <button class="mc-btn mc-btn-sm" (click)="editer(o)" title="Modifier"><i class="fa fa-pen"></i></button>
                     <button class="mc-btn mc-btn-sm mc-btn-danger" (click)="aSupprimer = o" title="Supprimer"><i class="fa fa-trash-can"></i></button>
@@ -144,7 +146,8 @@ export class OrdonnancesComponent implements OnInit {
     lignes: this.fb.array([this.nouvelleLigne()])
   });
 
-  constructor(private fb: FormBuilder, private api: ApiService, private auth: AuthService, private pharmacie: PharmacieService) {}
+  constructor(private fb: FormBuilder, private api: ApiService, private auth: AuthService, private pharmacie: PharmacieService,
+              private pdf: PdfService) {}
 
   get lignes(): FormArray { return this.form.get('lignes') as FormArray; }
 
@@ -265,4 +268,6 @@ export class OrdonnancesComponent implements OnInit {
     w.focus();
     w.print();
   }
+  exportPdf(o: Ordonnance): void { if (o.id) this.pdf.ouvrir('ordonnance', o.id); }
+
 }

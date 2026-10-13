@@ -728,7 +728,7 @@ export class LaboratoireComponent implements OnInit {
     this.selectedExamen = e;
     this.showSaisie = true;
     this.saisieForm.patchValue({
-      statut: e.statut === 'RESULTAT_DISPONIBLE' ? 'RESULTAT_DISPONIBLE' : 'RESULTAT_DISPONIBLE',
+      statut: e.statut ?? 'RESULTAT_DISPONIBLE',
       dateResultat: e.dateResultat ?? new Date().toISOString().split('T')[0],
       resultatTexte: e.resultatTexte ?? '',
       fichierResultat: e.fichierResultat ?? '',

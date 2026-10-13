@@ -23,7 +23,7 @@ import { LaboNotificationsComponent } from './pages/labo/labo-notifications.comp
 import { DashboardComponent } from './pages/back/dashboard.component';
 import { PatientsComponent } from './pages/back/patients.component';
 import { MedecinsComponent } from './pages/back/medecins.component';
-import { PlanningsComponent } from './pages/back/plannings.component';
+import { CalendarComponent } from './pages/back/calendar.component';
 import { RendezVousBackComponent } from './pages/back/rendez-vous-back.component';
 import { StatistiquesComponent } from './pages/back/statistiques.component';
 import { StatistiquesDetailComponent } from './pages/back/statistiques-detail.component';
@@ -52,7 +52,7 @@ export const routes: Routes = [
       { path: 'dashboard',       component: DashboardComponent, title: 'Secrétariat — Tableau de bord' },
       { path: 'patients',        component: PatientsComponent, title: 'Secrétariat — Patients' },
       { path: 'rendez-vous',     component: RendezVousBackComponent, title: 'Secrétariat — Rendez-vous' },
-      { path: 'plannings',       component: PlanningsComponent, title: 'Secrétariat — Plannings' },
+      { path: 'plannings',       component: CalendarComponent, title: 'Secrétariat — Plannings' },
       { path: 'consultations',   component: ConsultationsComponent, title: 'Secrétariat — Consultations' },
       { path: 'factures',        component: FacturesComponent, title: 'Secrétariat — Factures' },
       { path: 'notifications',   component: NotificationsComponent, title: 'Secrétariat — Notifications' },
@@ -113,7 +113,7 @@ export const routes: Routes = [
       { path: 'patients',        component: PatientsComponent, title: 'Patients' },
       { path: 'medecins',        component: MedecinsComponent, title: 'Médecins',
         canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-      { path: 'plannings',       component: PlanningsComponent, title: 'Plannings' },
+      { path: 'plannings',       component: CalendarComponent, title: 'Plannings' },
       { path: 'rendez-vous',     component: RendezVousBackComponent, title: 'Rendez-vous' },
       { path: 'consultations',   component: ConsultationsComponent, title: 'Consultations' },
       { path: 'examens',         component: ExamensComponent, title: 'Examens' },

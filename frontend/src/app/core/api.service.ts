@@ -108,8 +108,22 @@ export class ApiService {
   supprimerNotification(id: number) { return this.http.delete(`${this.base}/notifications/${id}`); }
 
   // ── CHATBOT ──────────────────────────────────────────────────────
-  /** Le rôle et l'identité sont déduits du jeton côté serveur. */
-  chatbot(message: string) {
-    return this.http.post<{ reponse: string; source: string }>(`${this.base}/chatbot`, { message });
+  /** Le rôle et l'identité sont déduits du jeton côté serveur ; seul l'identifiant de conversation est transmis. */
+  chatbot(message: string, sessionId?: string) {
+    return this.http.post<{ reponse: string; source: string; sessionId?: string }>(`${this.base}/chatbot`, { message, sessionId });
+  }
+  chatHistorique(uid: number) { return this.http.get<any[]>(`${this.base}/chatbot/historique/${uid}`); }
+  chatSession(sid: string)    { return this.http.get<any[]>(`${this.base}/chatbot/session/${sid}`); }
+  chatDeleteHistorique(uid: number) { return this.http.delete(`${this.base}/chatbot/historique/${uid}`); }
+
+  // ── PDF EXPORT ────────────────────────────────────────────────────
+  pdfOrdonnance(id: number) {
+    return this.http.get(`${this.base}/pdf/ordonnance/${id}`,
+      { responseType: 'blob' });
+  }
+  pdfFacture(id: number) { return this.facturePdf(id); }
+  pdfExamen(id: number) {
+    return this.http.get(`${this.base}/pdf/examen/${id}`,
+      { responseType: 'blob' });
   }
 }
