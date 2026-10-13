@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgFor, NgIf, DatePipe, SlicePipe } from '@angular/common';
+import { NgFor, NgIf, DatePipe, DecimalPipe, SlicePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
@@ -7,7 +7,7 @@ import { AuthService } from '../../core/auth.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgFor, NgIf, DatePipe, SlicePipe, RouterLink],
+  imports: [NgFor, NgIf, DatePipe, DecimalPipe, SlicePipe, RouterLink],
   template: `
     <div class="db">
 
@@ -96,11 +96,11 @@ import { AuthService } from '../../core/auth.service';
           <!-- Taux -->
           <div class="db-taux-row" *ngIf="!isMedecin()">
             <div class="db-taux">
-              <div class="db-taux-v" style="color:#22c55e">{{ stats.tauxConfirmation || 0 }}%</div>
+              <div class="db-taux-v" style="color:#22c55e">{{ (stats.tauxConfirmation || 0) | number:'1.0-1' }} %</div>
               <div class="db-taux-l">Taux confirmation</div>
             </div>
             <div class="db-taux">
-              <div class="db-taux-v" style="color:#ef4444">{{ stats.tauxAnnulation || 0 }}%</div>
+              <div class="db-taux-v" style="color:#ef4444">{{ (stats.tauxAnnulation || 0) | number:'1.0-1' }} %</div>
               <div class="db-taux-l">Taux annulation</div>
             </div>
             <div class="db-taux">
@@ -541,7 +541,7 @@ export class DashboardComponent implements OnInit {
       { label:'RDV planifiés',      value:s.rendezVousPlanifies||0, icon:'fa-clock',          bg:'#fef9c3', color:'#854d0e' },
       { label:'RDV confirmés',      value:s.rendezVousConfirmes||0, icon:'fa-circle-check',   bg:'#dcfce7', color:'#15803d' },
       { label:'Utilisateurs',       value:s.utilisateurs||0,        icon:'fa-shield-halved',  bg:'#f0fdf4', color:'#166534' },
-      { label:'Taux confirmation',  value:(s.tauxConfirmation||0)+'%', icon:'fa-chart-line',  bg:'#e0f2fe', color:'#0369a1' },
+      { label:'Taux confirmation',  value:(s.tauxConfirmation||0).toLocaleString('fr-FR')+' %', icon:'fa-chart-line',  bg:'#e0f2fe', color:'#0369a1' },
     ];
   }
 

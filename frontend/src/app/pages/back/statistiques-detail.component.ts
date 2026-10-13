@@ -67,11 +67,11 @@ import { AuthService } from '../../core/auth.service';
             </div>
             <div class="stat-taux-row">
               <div class="stat-taux">
-                <div class="stat-taux-v" style="color:#22c55e">{{ stats.tauxConfirmation }}%</div>
+                <div class="stat-taux-v" style="color:#22c55e">{{ stats.tauxConfirmation | number:'1.0-1' }} %</div>
                 <div class="stat-taux-l">Taux conf.</div>
               </div>
               <div class="stat-taux">
-                <div class="stat-taux-v" style="color:#ef4444">{{ stats.tauxAnnulation }}%</div>
+                <div class="stat-taux-v" style="color:#ef4444">{{ stats.tauxAnnulation | number:'1.0-1' }} %</div>
                 <div class="stat-taux-l">Taux annul.</div>
               </div>
               <div class="stat-taux">

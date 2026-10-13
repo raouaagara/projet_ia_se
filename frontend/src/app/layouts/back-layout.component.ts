@@ -284,8 +284,8 @@ import { ChatbotComponent } from '../shared/chatbot.component';
     .med-link i { font-size:15px; width:18px; text-align:center; flex-shrink:0; }
     .med-link:hover { background:rgba(255,255,255,.12); color:#fff; }
     .med-active { background:rgba(255,255,255,.2) !important; color:#fff !important; box-shadow:inset 3px 0 0 #6ee7b7; }
-    .med-notif-link { justify-content:space-between; }
     .med-notif-dot {
+      margin-left:auto;
       min-width:18px; height:18px; border-radius:999px; padding:0 4px;
       background:#ef4444; color:#fff; font-size:10px; font-weight:800;
       display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;

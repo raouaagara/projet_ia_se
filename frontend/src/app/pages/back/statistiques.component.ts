@@ -148,7 +148,7 @@ import { ApiService } from '../../core/api.service';
                           [attr.stroke-dasharray]="s.tauxConfirmation + ', 100'"
                           d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                   </svg>
-                  <span>{{ s.tauxConfirmation }}%</span>
+                  <span>{{ s.tauxConfirmation | number:'1.0-1' }} %</span>
                 </div>
                 <div class="taux-label">Taux de<br>confirmation</div>
               </div>
@@ -160,7 +160,7 @@ import { ApiService } from '../../core/api.service';
                           [attr.stroke-dasharray]="s.tauxAnnulation + ', 100'"
                           d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                   </svg>
-                  <span>{{ s.tauxAnnulation }}%</span>
+                  <span>{{ s.tauxAnnulation | number:'1.0-1' }} %</span>
                 </div>
                 <div class="taux-label">Taux<br>d'annulation</div>
               </div>

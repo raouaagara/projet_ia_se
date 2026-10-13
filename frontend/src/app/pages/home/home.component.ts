@@ -48,14 +48,6 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
         <div class="hh-deco-ring hh-ring1"></div>
         <div class="hh-deco-ring hh-ring2"></div>
         <div class="hh-deco-ring hh-ring3"></div>
-        <!-- Croix décoratives -->
-        <div class="hh-deco-plus hh-p1">✕</div>
-        <div class="hh-deco-plus hh-p2">✕</div>
-        <div class="hh-deco-plus hh-p3">✕</div>
-        <!-- Points flottants -->
-        <div class="hh-deco-dot hh-d1"></div>
-        <div class="hh-deco-dot hh-d2"></div>
-        <div class="hh-deco-dot hh-d3"></div>
       </div>
       <div class="hh-inner">
         <div class="hh-left">
@@ -81,7 +73,7 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
             <div class="hh-sdiv"></div>
             <div class="hh-stat"><span class="hh-sv">{{ medecins.length }}</span><span class="hh-sl">Médecins</span></div>
             <div class="hh-sdiv"></div>
-            <div class="hh-stat"><span class="hh-sv">15+</span><span class="hh-sl">Spécialités</span></div>
+            <div class="hh-stat"><span class="hh-sv">24/7</span><span class="hh-sl">Prise de RDV</span></div>
             <div class="hh-sdiv"></div>
             <div class="hh-stat"><span class="hh-sv">98%</span><span class="hh-sl">Satisfaction</span></div>
           </div>

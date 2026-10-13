@@ -190,7 +190,7 @@ public class ChatbotService {
         long confirmes = rendezVousRepository.countByStatut(StatutRendezVous.CONFIRME);
         long annules   = rendezVousRepository.countByStatut(StatutRendezVous.ANNULE);
         long termines  = rendezVousRepository.countByStatut(StatutRendezVous.TERMINE);
-        double tauxConf = totalRdv > 0 ? Math.round(confirmes * 100.0 / totalRdv * 10) / 10.0 : 0;
+        double tauxConf = totalRdv > 0 ? Math.round((confirmes + termines) * 100.0 / totalRdv * 10) / 10.0 : 0;
         double tauxAnn  = totalRdv > 0 ? Math.round(annules  * 100.0 / totalRdv * 10) / 10.0 : 0;
 
         java.math.BigDecimal revenusTotal = null;
