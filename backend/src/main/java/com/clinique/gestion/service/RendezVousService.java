@@ -3,6 +3,7 @@ package com.clinique.gestion.service;
 import com.clinique.gestion.dto.RendezVousDto;
 import com.clinique.gestion.entity.*;
 import com.clinique.gestion.repository.*;
+import com.clinique.gestion.security.UtilisateurCourant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ public class RendezVousService {
     private final PatientRepository          patientRepository;
     private final MedecinRepository          medecinRepository;
     private final NotificationService        notificationService;
+    private final UtilisateurCourant         utilisateurCourant;
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm");
 
@@ -25,6 +27,7 @@ public class RendezVousService {
     }
 
     public List<RendezVousDto> findByPatient(Long patientId) {
+        utilisateurCourant.verifierAccesPatient(patientId);
         return repository.findByPatientIdOrderByDateHeureDesc(patientId).stream().map(this::toDto).toList();
     }
 
@@ -33,10 +36,14 @@ public class RendezVousService {
     }
 
     public RendezVousDto findById(Long id) {
-        return toDto(get(id));
+        RendezVous rdv = get(id);
+        utilisateurCourant.verifierAccesPatient(rdv.getPatient().getId());
+        return toDto(rdv);
     }
 
     public RendezVousDto create(RendezVousDto dto) {
+        // Un patient ne prend rendez-vous que pour lui-même.
+        utilisateurCourant.verifierAccesPatient(dto.getPatientId());
         RendezVous entity = toEntity(dto);
         entity.setId(null);
         if (entity.getStatut() == null) entity.setStatut(StatutRendezVous.PLANIFIE);

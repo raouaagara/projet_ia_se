@@ -3,6 +3,7 @@ package com.clinique.gestion.service;
 import com.clinique.gestion.dto.ExamenLaboratoireDto;
 import com.clinique.gestion.entity.*;
 import com.clinique.gestion.repository.*;
+import com.clinique.gestion.security.UtilisateurCourant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class ExamenLaboratoireService {
     private final MedecinRepository medecinRepository;
     private final ConsultationRepository consultationRepository;
     private final NotificationService notificationService;
+    private final UtilisateurCourant utilisateurCourant;
 
     // ── Lecture ──────────────────────────────────────────────────────────
 
@@ -27,6 +29,7 @@ public class ExamenLaboratoireService {
     }
 
     public List<ExamenLaboratoireDto> findByPatient(Long patientId) {
+        utilisateurCourant.verifierAccesPatient(patientId);
         return examenRepository.findByPatientIdOrderByDateDemandeDesc(patientId)
                 .stream().map(this::toDto).toList();
     }
@@ -37,7 +40,9 @@ public class ExamenLaboratoireService {
     }
 
     public ExamenLaboratoireDto findById(Long id) {
-        return toDto(get(id));
+        ExamenLaboratoire e = get(id);
+        utilisateurCourant.verifierAccesPatient(e.getPatient().getId());
+        return toDto(e);
     }
 
     // ── Création ─────────────────────────────────────────────────────────

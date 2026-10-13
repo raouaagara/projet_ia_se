@@ -6,6 +6,7 @@ import com.clinique.gestion.repository.ConsultationRepository;
 import com.clinique.gestion.repository.MedecinRepository;
 import com.clinique.gestion.repository.PatientRepository;
 import com.clinique.gestion.repository.RendezVousRepository;
+import com.clinique.gestion.security.UtilisateurCourant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +21,14 @@ public class ConsultationService {
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
     private final RendezVousRepository rendezVousRepository;
+    private final UtilisateurCourant utilisateurCourant;
 
     public List<ConsultationDto> findAll() {
         return repository.findAll().stream().map(this::toDto).toList();
     }
 
     public List<ConsultationDto> findByPatient(Long patientId) {
+        utilisateurCourant.verifierAccesPatient(patientId);
         return repository.findByPatientIdOrderByDateConsultationDesc(patientId).stream().map(this::toDto).toList();
     }
 
@@ -34,7 +37,9 @@ public class ConsultationService {
     }
 
     public ConsultationDto findById(Long id) {
-        return toDto(get(id));
+        Consultation c = get(id);
+        utilisateurCourant.verifierAccesPatient(c.getPatient().getId());
+        return toDto(c);
     }
 
     public ConsultationDto create(ConsultationDto dto) {

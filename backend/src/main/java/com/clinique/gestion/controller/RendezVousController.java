@@ -25,16 +25,19 @@ public class RendezVousController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
     public RendezVousDto findById(@PathVariable Long id) {
         return service.findById(id);
     }
 
     @GetMapping("/patient/{patientId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
     public List<RendezVousDto> findByPatient(@PathVariable Long patientId) {
         return service.findByPatient(patientId);
     }
 
     @GetMapping("/medecin/{medecinId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE')")
     public List<RendezVousDto> findByMedecin(@PathVariable Long medecinId) {
         return service.findByMedecin(medecinId);
     }

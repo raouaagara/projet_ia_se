@@ -25,16 +25,19 @@ public class ConsultationController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
     public ConsultationDto findById(@PathVariable Long id) {
         return service.findById(id);
     }
 
     @GetMapping("/patient/{patientId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','PATIENT')")
     public List<ConsultationDto> findByPatient(@PathVariable Long patientId) {
         return service.findByPatient(patientId);
     }
 
     @GetMapping("/medecin/{medecinId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE')")
     public List<ConsultationDto> findByMedecin(@PathVariable Long medecinId) {
         return service.findByMedecin(medecinId);
     }

@@ -68,11 +68,6 @@ public class UtilisateurService {
         return toDto(repository.save(existing));
     }
 
-    // Surcharge pour compatibilité admin sans email caller
-    public UtilisateurDto update(Long id, UtilisateurDto dto) {
-        return update(id, dto, "admin@clinique.local");
-    }
-
     public void delete(Long id) {
         repository.deleteById(id);
     }
