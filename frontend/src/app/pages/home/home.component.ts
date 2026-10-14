@@ -69,9 +69,9 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
             <div class="hh-trust-item"><i class="fa fa-circle-check"></i> RDV en 2 minutes</div>
           </div>
           <div class="hh-stats rv">
-            <div class="hh-stat"><span class="hh-sv">{{ specialites() }}</span><span class="hh-sl">Spécialités</span></div>
+            <div class="hh-stat"><span class="hh-sv">12</span><span class="hh-sl">Spécialités</span></div>
             <div class="hh-sdiv"></div>
-            <div class="hh-stat"><span class="hh-sv">{{ medecins.length }}</span><span class="hh-sl">Médecins</span></div>
+            <div class="hh-stat"><span class="hh-sv">25+</span><span class="hh-sl">Médecins</span></div>
             <div class="hh-sdiv"></div>
             <div class="hh-stat"><span class="hh-sv">24/7</span><span class="hh-sl">Prise de RDV</span></div>
             <div class="hh-sdiv"></div>
@@ -183,7 +183,7 @@ import { ChatbotComponent } from '../../shared/chatbot.component';
           </div>
         </div>
         <div class="hm-empty" *ngIf="medecins.length===0">
-          <i class="fa fa-circle-notch fa-spin"></i> Chargement…
+          <i class="fa fa-user-doctor"></i> Notre équipe médicale arrive bientôt.
         </div>
       </div>
     </section>
