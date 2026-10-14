@@ -110,7 +110,11 @@ export class ApiService {
   // ── CHATBOT ──────────────────────────────────────────────────────
   /** Le rôle et l'identité sont déduits du jeton côté serveur ; seul l'identifiant de conversation est transmis. */
   chatbot(message: string, sessionId?: string) {
-    return this.http.post<{ reponse: string; source: string; sessionId?: string }>(`${this.base}/chatbot`, { message, sessionId });
+    return this.http.post<{ reponse: string; source: string; sessionId?: string }>(
+      `${this.base}/chatbot`,
+      { message, sessionId },
+      { headers: { 'X-Timeout': '90000' } }  // backend Render Free peut prendre 50s à démarrer
+    );
   }
   chatHistorique(uid: number) { return this.http.get<any[]>(`${this.base}/chatbot/historique/${uid}`); }
   chatSession(sid: string)    { return this.http.get<any[]>(`${this.base}/chatbot/session/${sid}`); }

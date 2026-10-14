@@ -310,6 +310,8 @@ export class ChatbotComponent implements AfterViewChecked {
     this.messages.update(l => [...l, { from: 'bot', text: '', time: '', typing: true }]);
 
     // La clé de l'API IA reste côté serveur : le navigateur n'appelle que le backend.
+    // Note: le backend Render Free peut prendre ~50s à démarrer après inactivité
+    this.messages.update(l => l.map(m => m.typing ? { ...m, text: '⏳ Démarrage du serveur (peut prendre 30-50s)...' } : m));
     this.api.chatbot(text, this.sessionId).subscribe({
       next: (res) => {
         this.busy = false;
