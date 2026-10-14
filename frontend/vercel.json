@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm run build -- --configuration production",
+  "outputDirectory": "dist/clinique-frontend/browser",
   "rewrites": [
     { "source": "/((?!sitemap.xml|robots.txt|assets/.*).*)", "destination": "/index.html" }
   ],
